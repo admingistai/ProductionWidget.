@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Reset pointer-events for widget content */
+#gist-widget-root > * {
+  pointer-events: auto;
+}
+
+/* Custom scrollbar for chat */
+#gist-widget-root .gist-chat-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+#gist-widget-root .gist-chat-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+#gist-widget-root .gist-chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#gist-widget-root .gist-chat-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+}
+
+/* Prevent widget styles from affecting host page */
+#gist-widget-root {
+  /* Reset specific properties instead of using all: initial */
+  box-sizing: border-box;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  line-height: 1.5;
+  font-size: 16px;
+  color: inherit;
+  isolation: isolate;
+  /* Don't override display - let it be controlled by JS */
+}
+
+#gist-widget-root *,
+#gist-widget-root *::before,
+#gist-widget-root *::after {
+  box-sizing: border-box;
+}
+
+/* Widget animations */
+@keyframes gist-widget-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}

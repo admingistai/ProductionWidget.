@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Widget Visibility Test</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+      background: #f0f0f0;
+    }
+    #test-output {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      white-space: pre-wrap;
+    }
+    .highlight {
+      background: yellow;
+      padding: 2px 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Widget Visibility Test</h1>
+  <div id="test-output">Loading widget and checking visibility...</div>
+
+  <!-- Load widget with auto-init disabled for manual control -->
+  <script src="./dist/widget.iife.js" data-autoinit="false"></script>
+  
+  <script>
+    const output = document.getElementById('test-output');
+    let logs = [];
+    
+    function log(message, important = false) {
+      const timestamp = new Date().toLocaleTimeString();
+      const entry = `[${timestamp}] ${message}`;
+      logs.push(important ? `<span class="highlight">${entry}</span>` : entry);
+      output.innerHTML = logs.join('\n');
+      console.log(message);
+    }
+
+    // Wait for page load
+    window.addEventListener('load', () => {
+      log('Page loaded');
+      
+      // Check if widget API exists
+      if (!window.GistWidget) {
+        log('❌ GistWidget API not found!', true);
+        return;
+      }
+      
+      log('✅ GistWidget API loaded');
+      
+      // Initialize widget manually
+      try {
+        log('Initializing widget...');
+        window.GistWidget.init({
+          theme: 'light',
+          placeholder: 'Testing visibility...'
+        });
+        log('✅ Widget initialized');
+        
+        // Wait a moment for React to render
+        setTimeout(() => {
+          // Check for widget container
+          const container = document.getElementById('gist-widget-root');
+          if (!container) {
+            log('❌ Widget container not found!', true);
+            return;
+          }
+          
+          log('✅ Widget container found');
+          
+          // Check container styles
+          const styles = window.getComputedStyle(container);
+          log(`Container position: ${styles.position}`);
+          log(`Container display: ${styles.display}`);
+          log(`Container visibility: ${styles.visibility}`);
+          log(`Container opacity: ${styles.opacity}`);
+          log(`Container z-index: ${styles.zIndex}`);
+          log(`Container pointer-events: ${styles.pointerEvents}`);
+          log(`Container dimensions: ${container.offsetWidth}x${container.offsetHeight}`);
+          
+          // Check for child elements
+          log(`Container children: ${container.children.length}`);
+          
+          if (container.children.length > 0) {
+            const firstChild = container.children[0];
+            log(`First child tag: ${firstChild.tagName}`);
+            log(`First child classes: ${firstChild.className}`);
+            
+            // Check if morphing widget button is visible
+            const button = container.querySelector('button');
+            if (button) {
+              log('✅ Widget button found!', true);
+              const buttonStyles = window.getComputedStyle(button);
+              log(`Button display: ${buttonStyles.display}`);
+              log(`Button visibility: ${buttonStyles.visibility}`);
+              log(`Button dimensions: ${button.offsetWidth}x${button.offsetHeight}`);
+              log(`Button background: ${buttonStyles.backgroundColor}`);
+              
+              // Highlight the button location
+              const rect = button.getBoundingClientRect();
+              log(`Button position: left=${rect.left}, top=${rect.top}, bottom=${rect.bottom}`, true);
+              
+              if (rect.width > 0 && rect.height > 0) {
+                log('✅ WIDGET IS VISIBLE!', true);
+              } else {
+                log('❌ Widget button has no dimensions', true);
+              }
+            } else {
+              log('❌ No button found in widget', true);
+            }
+          } else {
+            log('❌ Container has no children - widget not rendering', true);
+          }
+          
+        }, 1000);
+        
+      } catch (error) {
+        log(`❌ Error: ${error.message}`, true);
+      }
+    });
+  </script>
+</body>
+</html>

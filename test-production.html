@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production Widget Test - Pro-Rata Account</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .info {
+            background: #e8f4fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #0066cc;
+        }
+        .url {
+            font-family: monospace;
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .status.deployed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Production Widget Test</h1>
+        
+        <div class="info">
+            <h2>Deployment Status</h2>
+            <p><strong>Widget URL:</strong> <span class="status deployed">Deployed to Pro-Rata</span></p>
+            <div class="url">https://widget-deploy-20m7lqaxy-pro-rata.vercel.app/widget.js</div>
+            
+            <p><strong>Backend API:</strong> <span class="status pending">Needs Environment Variables</span></p>
+            <div class="url">https://attemptnumberwhatever-8pes44ejn-pro-rata.vercel.app/api/simple-chat</div>
+        </div>
+
+        <h2>Test Your Widget</h2>
+        <p>The AI chat widget should appear in the bottom-center of this page. Click on it to start chatting!</p>
+        
+        <h3>Next Steps:</h3>
+        <ol>
+            <li><strong>Set Environment Variables in Vercel Dashboard:</strong>
+                <ul>
+                    <li>OPENAI_API_KEY (get new one from OpenAI)</li>
+                    <li>OPENAI_MODEL = gpt-3.5-turbo</li>
+                    <li>MAX_TOKENS = 1000</li>
+                    <li>SERVICE_KEY = vpmM+wDsNG6OXb05l9aLbyyUqgsG/o/GyGtCbBWLymU=</li>
+                </ul>
+            </li>
+            <li><strong>Test the widget</strong> - It should connect to your backend successfully</li>
+            <li><strong>Share this embed code</strong> with your customers:
+                <div class="url">&lt;script src="https://widget-deploy-20m7lqaxy-pro-rata.vercel.app/widget.js" defer&gt;&lt;/script&gt;</div>
+            </li>
+        </ol>
+
+        <h3>Widget Features:</h3>
+        <ul>
+            <li>Automatically reads page content for context-aware answers</li>
+            <li>Secure backend communication (no API keys exposed)</li>
+            <li>Light/dark theme support</li>
+            <li>Mobile responsive design</li>
+            <li>Session tracking and conversation history</li>
+        </ul>
+    </div>
+
+    <!-- Load the production widget from Pro-Rata account -->
+    <script src="https://widget-deploy-20m7lqaxy-pro-rata.vercel.app/widget.js" defer></script>
+</body>
+</html>
