@@ -20,8 +20,8 @@ let root: ReturnType<typeof createRoot> | null = null;
 let container: HTMLDivElement | null = null;
 
 const DEFAULT_CONFIG: WidgetConfig = {
-  apiEndpoint: process.env.VITE_WIDGET_API_ENDPOINT || 'https://attemptnumberwhatever-ekpwcd6xz-pro-rata.vercel.app/api/simple-chat',
-  serviceKey: process.env.VITE_WIDGET_SERVICE_KEY || '',
+  apiEndpoint: import.meta.env.VITE_WIDGET_API_ENDPOINT || 'https://attemptnumberwhatever-ekpwcd6xz-pro-rata.vercel.app/api/simple-chat',
+  serviceKey: import.meta.env.VITE_WIDGET_SERVICE_KEY || '',
   position: 'bottom-center',
   theme: 'light',
   placeholder: 'Ask anything...',
@@ -38,8 +38,12 @@ function createContainer(): HTMLDivElement {
   div.style.bottom = '20px';
   div.style.left = '50%';
   div.style.transform = 'translateX(-50%)';
-  div.style.zIndex = '9999';
-  div.style.pointerEvents = 'none';
+  div.style.zIndex = '2147483647'; // Maximum z-index value
+  div.style.pointerEvents = 'auto';
+  // Force visibility
+  div.style.display = 'block';
+  div.style.visibility = 'visible';
+  div.style.opacity = '1';
   document.body.appendChild(div);
   return div;
 }
@@ -57,8 +61,8 @@ function mountWidget(config: Partial<WidgetConfig> = {}) {
   console.log('🔧 Widget API Endpoint:', finalConfig.apiEndpoint);
   console.log('🔑 Widget Service Key:', finalConfig.serviceKey ? 'Set' : 'Missing');
   console.log('🔍 Environment Variables Debug:');
-  console.log('  - VITE_WIDGET_API_ENDPOINT:', process.env.VITE_WIDGET_API_ENDPOINT);
-  console.log('  - VITE_WIDGET_SERVICE_KEY:', process.env.VITE_WIDGET_SERVICE_KEY ? 'Set' : 'Missing');
+  console.log('  - VITE_WIDGET_API_ENDPOINT:', import.meta.env.VITE_WIDGET_API_ENDPOINT);
+  console.log('  - VITE_WIDGET_SERVICE_KEY:', import.meta.env.VITE_WIDGET_SERVICE_KEY ? 'Set' : 'Missing');
   
   // Create container if not exists
   if (!container) {

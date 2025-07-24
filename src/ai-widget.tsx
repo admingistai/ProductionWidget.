@@ -11,8 +11,8 @@ import { useResponsiveWidth } from './hooks/useResponsiveWidth'
 import type { WidgetState, ChatMessage, WidgetProps, WidgetConfig, APIResponse, OptimizedContext } from './types/widget'
 
 const DEFAULT_CONFIG: WidgetConfig = {
-  apiEndpoint: import.meta.env.VITE_WIDGET_API_ENDPOINT || 'https://attemptnumberwhatever-8pes44ejn-pro-rata.vercel.app/api/simple-chat',
-  serviceKey: process.env.VITE_WIDGET_SERVICE_KEY || '',
+  apiEndpoint: import.meta.env.VITE_WIDGET_API_ENDPOINT || 'https://attemptnumberwhatever-ekpwcd6xz-pro-rata.vercel.app/api/simple-chat',
+  serviceKey: import.meta.env.VITE_WIDGET_SERVICE_KEY || '',
   position: 'bottom-center',
   theme: 'light',
   placeholder: 'Ask anything...',
@@ -250,18 +250,27 @@ export function AIWidget({
     handleStateChange('collapsed')
   }, [handleStateChange])
 
-  // Position classes
+  // Position classes with keyboard awareness
   const getPositionClasses = () => {
-    switch (finalConfig.position) {
-      case 'bottom-left':
-        return 'tw-bottom-6 tw-left-6'
-      case 'bottom-right':
-        return 'tw-bottom-6 tw-right-6'
-      case 'bottom-center':
-      default:
-        return 'tw-bottom-6 tw-left-1/2 tw-transform -tw-translate-x-1/2'
+    const baseClasses = {
+      'bottom-left': 'tw-left-6',
+      'bottom-right': 'tw-right-6', 
+      'bottom-center': 'tw-left-1/2 tw-transform -tw-translate-x-1/2'
+    }
+    
+    const horizontalClass = baseClasses[finalConfig.position as keyof typeof baseClasses] || baseClasses['bottom-center']
+    
+    return horizontalClass
+  }
+
+  // Simple fixed bottom positioning
+  const getBottomStyle = () => {
+    return {
+      bottom: '20px',
+      zIndex: 50
     }
   }
+
 
   // Handle escape key and click outside
   useEffect(() => {
@@ -290,14 +299,76 @@ export function AIWidget({
     }
   }, [state, handleCollapse])
 
+  // Determine if widget is in expanded state
+  const isWidgetExpanded = state === 'expanded' || state === 'loading' || state === 'chat-visible'
+
+  // Debug logging with dimension analysis
+  useEffect(() => {
+    if (widgetRef.current) {
+      const rect = widgetRef.current.getBoundingClientRect();
+      const computed = window.getComputedStyle(widgetRef.current);
+      console.log('🔍 AIWidget Dimensions:', {
+        state,
+        isWidgetExpanded,
+        boundingRect: { width: rect.width, height: rect.height, top: rect.top, left: rect.left },
+        computedStyles: {
+          width: computed.width,
+          height: computed.height,
+          minWidth: computed.minWidth,
+          minHeight: computed.minHeight,
+          display: computed.display,
+          position: computed.position,
+          visibility: computed.visibility,
+          opacity: computed.opacity
+        },
+        inlineStyles: widgetRef.current.style.cssText,
+        className: widgetRef.current.className
+      });
+      
+      // Log all children dimensions
+      Array.from(widgetRef.current.children).forEach((child, index) => {
+        const childRect = child.getBoundingClientRect();
+        const childComputed = window.getComputedStyle(child);
+        console.log(`🔍 AIWidget Child ${index}:`, {
+          tagName: child.tagName,
+          className: child.className,
+          boundingRect: { width: childRect.width, height: childRect.height },
+          computedStyles: {
+            width: childComputed.width,
+            height: childComputed.height,
+            display: childComputed.display
+          }
+        });
+      });
+    }
+  }, [state, isWidgetExpanded])
+  
+  console.log('AIWidget state:', { state, isWidgetExpanded })
+
   return (
     <div 
       ref={widgetRef}
-      className={`tw-fixed ${getPositionClasses()} ${getContainerPadding()} tw-z-50 tw-flex tw-flex-col tw-items-center tw-transition-all tw-duration-500 tw-ease-out`}
+      className={`tw-fixed ${getPositionClasses()} tw-z-50 tw-transition-all tw-duration-500 tw-ease-out`}
+      style={{ 
+        ...getBottomStyle(),
+        position: 'fixed',
+        // Fallback dimensions to ensure visibility
+        minWidth: '120px',
+        minHeight: '60px'
+      }}
     >
-      {/* Chat Viewport - shows above morphing widget */}
+      {/* Chat Viewport - positioned absolutely relative to widget center with natural sizing */}
       {(state === 'chat-visible' || state === 'loading') && (
-        <div className={`tw-mb-4 ${getWidgetWidth()} tw-max-w-full`}>
+        <div 
+          className="tw-absolute tw-bottom-full tw-mb-4"
+          style={{
+            left: '50%',
+            transform: 'translateX(-50%)',
+            minWidth: '300px',
+            maxWidth: '90vw',
+            width: 'max-content'
+          }}
+        >
           <ChatViewport 
             messages={messages}
             isLoading={isLoading}
@@ -306,15 +377,15 @@ export function AIWidget({
         </div>
       )}
 
-      {/* Morphing Widget - handles both button and search bar states */}
+      {/* Morphing Widget - handles both button and search bar states, with container padding */}
       <div 
-        className="tw-widget-bounce-in"
+        className={`tw-widget-bounce-in ${getContainerPadding()}`}
         style={{ 
           transform: 'translateZ(0)' // Force hardware acceleration
         }}
       >
         <MorphingWidget
-          isExpanded={state === 'expanded' || state === 'loading' || state === 'chat-visible'}
+          isExpanded={isWidgetExpanded}
           onExpand={handleExpand}
           onCollapse={handleCollapse}
           onSubmit={handleSubmit}

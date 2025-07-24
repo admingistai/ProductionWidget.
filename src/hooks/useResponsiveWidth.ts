@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useIOSKeyboard } from './useIOSKeyboard'
 
 export interface ResponsiveWidthConfig {
   mobile: string
@@ -29,6 +30,7 @@ export function useResponsiveWidth() {
     isDesktop: true,
     width: typeof window !== 'undefined' ? window.innerWidth : 1024,
   })
+  const keyboardState = useIOSKeyboard()
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -60,10 +62,23 @@ export function useResponsiveWidth() {
 
   /**
    * Get responsive width classes for the widget
-   * Provides mobile-first responsive approach
+   * Provides mobile-first responsive approach with keyboard awareness
    */
   const getWidgetWidth = () => {
+    // Debug logging for Tailwind class investigation
+    console.log('getWidgetWidth:', { 
+      isMobile: breakpointInfo.isMobile, 
+      isTablet: breakpointInfo.isTablet, 
+      isDesktop: breakpointInfo.isDesktop,
+      width: breakpointInfo.width,
+      keyboardVisible: keyboardState.isVisible 
+    })
+    
     if (breakpointInfo.isMobile) {
+      // On mobile with keyboard visible, use slightly smaller width for better fit
+      if (keyboardState.isVisible && keyboardState.isIOS) {
+        return 'tw-w-[calc(100vw-24px)] tw-max-w-[440px]'
+      }
       return 'tw-w-[calc(100vw-32px)] tw-max-w-[460px]'
     }
     if (breakpointInfo.isTablet) {
@@ -76,6 +91,11 @@ export function useResponsiveWidth() {
    * Get responsive width for collapsed button state
    */
   const getCollapsedWidth = () => {
+    console.log('getCollapsedWidth:', { 
+      isMobile: breakpointInfo.isMobile,
+      returning: breakpointInfo.isMobile ? 'tw-w-[100px]' : 'tw-w-[120px]'
+    })
+    
     if (breakpointInfo.isMobile) {
       return 'tw-w-[100px]'
     }
@@ -96,13 +116,28 @@ export function useResponsiveWidth() {
   }
 
   /**
-   * Get responsive height for chat viewport
+   * Get responsive height for chat viewport with keyboard adjustment
    */
   const getChatHeight = () => {
     if (breakpointInfo.isMobile) {
+      // Reduce height when keyboard is visible on iOS to prevent overflow
+      if (keyboardState.isVisible && keyboardState.isIOS) {
+        return 'tw-h-[200px]'
+      }
       return 'tw-h-[250px]'
     }
     return 'tw-h-[300px]'
+  }
+
+  /**
+   * Get keyboard-aware container classes
+   */
+  const getKeyboardAwareClasses = () => {
+    const baseClasses = 'tw-transition-all tw-duration-300'
+    if (keyboardState.isIOS && keyboardState.isVisible) {
+      return `${baseClasses} ios-keyboard-visible`
+    }
+    return `${baseClasses} ios-keyboard-hidden`
   }
 
   return {
@@ -111,5 +146,7 @@ export function useResponsiveWidth() {
     getCollapsedWidth,
     getContainerPadding,
     getChatHeight,
+    getKeyboardAwareClasses,
+    keyboardState,
   }
 }

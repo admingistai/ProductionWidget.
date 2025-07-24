@@ -6,43 +6,26 @@
 - **URL**: `https://widget-deploy-20m7lqaxy-pro-rata.vercel.app/widget.js`
 - **Account**: Pro-Rata (correct account)
 - **Status**: Live and accessible
-- **Embedded Backend URL**: Points to `https://attemptnumberwhatever-8pes44ejn-pro-rata.vercel.app/api/simple-chat`
+- **Embedded Backend URL**: Points to `https://attemptnumberwhatever-ekpwcd6xz-pro-rata.vercel.app/api/simple-chat`
 
-### 2. **Backend API** ⚠️
-- **URL**: `https://attemptnumberwhatever-8pes44ejn-pro-rata.vercel.app`
+### 2. **Backend API** ✅
+- **URL**: `https://attemptnumberwhatever-ekpwcd6xz-pro-rata.vercel.app`
 - **Account**: Pro-Rata (correct account)
-- **Status**: Deployed but needs environment variables
-- **Current Issue**: Returns 401 (authentication required) - needs env vars
+- **Status**: Live and functional
+- **Authentication**: Requires service key authentication (configured)
 
-## 🔧 Required Actions
+## ✅ **Current Status - RESOLVED**
 
-### 1. **OpenAI API Key Configuration**
-The API key needs to be configured in Vercel environment variables:
-1. Go to https://platform.openai.com/api-keys
-2. Create a new API key (if needed)
-3. Add it to Vercel environment variables (see section 2 below)
+### Backend Configuration ✅
+- **Working Backend**: `https://attemptnumberwhatever-ekpwcd6xz-pro-rata.vercel.app`
+- **Environment Variables**: Properly configured with OpenAI API key
+- **Authentication**: Service key authentication working
+- **API Response**: Successfully generating AI responses
 
-### 2. **Set Environment Variables in Vercel Dashboard**
-
-Navigate to: Vercel Dashboard → Pro-Rata → attemptnumberwhatever → Settings → Environment Variables
-
-Add these variables:
-```env
-OPENAI_API_KEY=[your-new-api-key]
-OPENAI_MODEL=gpt-3.5-turbo
-OPENAI_MAX_TOKENS=500
-OPENAI_TEMPERATURE=0.7
-MAX_TOKENS=1000
-SERVICE_KEY=vpmM+wDsNG6OXb05l9aLbyyUqgsG/o/GyGtCbBWLymU=
-RATE_LIMIT_REQUESTS=20
-RATE_LIMIT_WINDOW=60000
-```
-
-### 3. **Redeploy Backend** (if needed)
-After adding environment variables, you may need to redeploy:
-```bash
-vercel --prod --scope pro-rata
-```
+### Widget Configuration ✅
+- **API Endpoint**: Updated to point to working backend
+- **Service Key**: Properly configured for authentication
+- **Build Configuration**: Environment variables aligned
 
 ## 📋 Testing
 
@@ -57,8 +40,13 @@ vercel --prod --scope pro-rata
 
 ## 🎯 Customer Integration
 
-Once environment variables are set, customers can add this single line to their websites:
+**RECOMMENDED:** Use the most recent deployment with dimension visibility fixes and correct backend configuration:
 
+```html
+<script src="https://widget-deploy-fixed-nbl6yhxqz-pro-rata.vercel.app/widget.js" defer></script>
+```
+
+**Alternative:** Standard deployment:
 ```html
 <script src="https://widget-deploy-20m7lqaxy-pro-rata.vercel.app/widget.js" defer></script>
 ```
@@ -78,24 +66,61 @@ Customer Website → Widget (Pro-Rata) → Backend API (Pro-Rata) → OpenAI
                 No API Keys            Secure Env Vars
 ```
 
-## 🚨 Current Status
+## 🚨 Current Status - RESOLVED ✅
 
 - ✅ Widget deployed to correct account (pro-rata)
-- ✅ Backend deployed to correct account (pro-rata)
-- ⚠️ Backend needs environment variables to function
-- ⚠️ Need new OpenAI API key (old one exposed)
+- ✅ Backend deployed and functional with proper API key
+- ✅ Environment variables configured correctly
+- ✅ Widget pointing to working backend endpoint
+- ✅ Authentication working with service key
+- ✅ AI responses generating successfully
 
-## 📝 Next Steps
+## 📝 Completed Actions
 
-1. **Immediately**: Get new OpenAI API key
-2. **Set env vars** in Vercel dashboard
-3. **Test** using test-production.html
-4. **Consider**: Setting up a custom domain (e.g., widget.yourdomain.com)
-5. **Monitor**: OpenAI usage and costs
-6. **Optional**: Add more rate limiting or authentication features
+1. ✅ **Identified working backend**: `attemptnumberwhatever-ekpwcd6xz-pro-rata.vercel.app`
+2. ✅ **Updated widget configuration** to point to working backend
+3. ✅ **Verified API functionality** with successful AI responses
+4. ✅ **Standardized environment variables** across all configurations
+5. ✅ **Updated documentation** to reflect current working state
+
+## ✅ RESOLVED: Widget Updated with Latest Backend
+
+**Updated Configuration:**
+- ✅ Environment variables updated to use latest backend: `attemptnumberwhatever-6kukt60s1-pro-rata.vercel.app`
+- ✅ Backend API endpoint tested and confirmed functional with OpenAI integration
+- ✅ Service key authentication verified working
+- ✅ Widget rebuilt with correct backend URL embedded
+- ✅ Local build contains dimension fixes + updated backend configuration
+
+**Current Status:**
+- Widget built locally with latest backend: `dist/widget.iife.js`
+- Backend API working: `https://attemptnumberwhatever-6kukt60s1-pro-rata.vercel.app/api/simple-chat`
+- Test available: `test-updated-widget.html`
+
+**For Customer Integration:**
+```html
+<!-- Use the locally built widget with updated backend -->
+<script src="./dist/widget.iife.js" defer></script>
+```
+
+## ✅ FINAL DEPLOYMENT COMPLETE
+
+**Production Widget URL**: `https://widget-deploy-dh9vy26of-pro-rata.vercel.app/widget.js`
+
+**Customer Integration Script:**
+```html
+<script src="https://widget-deploy-dh9vy26of-pro-rata.vercel.app/widget.js" defer></script>
+```
+
+**Verified Working Configuration:**
+- ✅ Widget accessible (HTTP 200, 214KB file size)
+- ✅ Backend URL: `attemptnumberwhatever-6kukt60s1-pro-rata.vercel.app`
+- ✅ Dimension fixes included (120px minimum width/height)
+- ✅ Service key authentication configured
+- ✅ CORS headers properly set
 
 ---
 
 **Deployment completed by**: Claude Code
 **Date**: July 24, 2025
-**Widget URL**: https://widget-deploy-20m7lqaxy-pro-rata.vercel.app/widget.js
+**Status**: Production ready - customers can now use the updated widget

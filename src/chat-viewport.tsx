@@ -24,42 +24,43 @@ export function ChatViewport({ messages, isLoading, theme = 'light' }: ChatViewp
       )}
       
       {messages.map((message) => (
-        <div key={message.id} className="tw-space-y-2">
-          {/* User Question */}
-          <div className="tw-flex tw-justify-end">
-            <div className={`tw-max-w-[80%] tw-px-4 tw-py-2 tw-rounded-lg ${
-              isDark ? 'tw-bg-gist-primary tw-text-white' : 'tw-bg-gist-primary tw-text-white'
-            }`}>
-              <p className="tw-text-sm">{message.question}</p>
+        <div key={message.id} className="tw-mb-6">
+          {/* User Question - Top, left aligned, no bubble */}
+          <div className="tw-mb-3">
+            <div className={`tw-text-xl tw-font-bold ${
+              isDark ? 'tw-text-white' : 'tw-text-black'
+            }`} style={{ fontFamily: 'Work Sans, sans-serif' }}>
+              {message.question}
             </div>
           </div>
           
-          {/* AI Answer */}
-          <div className="tw-flex tw-justify-start">
-            <div className={`tw-max-w-[80%] tw-px-4 tw-py-2 tw-rounded-lg ${
-              isDark ? 'tw-bg-gray-700 tw-text-gray-100' : 'tw-bg-gray-100 tw-text-gray-900'
-            }`}>
-              <p className="tw-text-sm tw-whitespace-pre-wrap">{message.answer}</p>
+          {/* AI Answer - Below question, left aligned */}
+          <div>
+            <div className={`tw-text-sm tw-leading-relaxed tw-font-normal ${
+              isDark ? 'tw-text-gray-200' : 'tw-text-gray-700'
+            }`} style={{ fontFamily: 'Work Sans, sans-serif' }}>
+              <span className="tw-whitespace-pre-wrap">{message.answer}</span>
             </div>
           </div>
+          
+          {/* Visual separator between Q&A pairs */}
+          <div className={`tw-mt-4 tw-border-b ${
+            isDark ? 'tw-border-gray-600' : 'tw-border-gray-200'
+          }`}></div>
         </div>
       ))}
       
       {isLoading && (
-        <div className="tw-flex tw-justify-start">
-          <div className={`tw-px-4 tw-py-2 tw-rounded-lg ${
-            isDark ? 'tw-bg-gray-700' : 'tw-bg-gray-100'
-          }`}>
-            <div className="tw-flex tw-items-center tw-space-x-2">
-              <div className="tw-animate-pulse tw-flex tw-space-x-1">
-                <div className="tw-w-2 tw-h-2 tw-bg-gray-400 tw-rounded-full tw-animate-bounce"></div>
-                <div className="tw-w-2 tw-h-2 tw-bg-gray-400 tw-rounded-full tw-animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="tw-w-2 tw-h-2 tw-bg-gray-400 tw-rounded-full tw-animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              </div>
-              <span className={`tw-text-sm ${
-                isDark ? 'tw-text-gray-300' : 'tw-text-gray-600'
-              }`}>AI is thinking...</span>
+        <div className="tw-mb-6">
+          <div className="tw-flex tw-items-center tw-space-x-2">
+            <div className="tw-animate-pulse tw-flex tw-space-x-1">
+              <div className="tw-w-2 tw-h-2 tw-bg-gray-400 tw-rounded-full tw-animate-bounce"></div>
+              <div className="tw-w-2 tw-h-2 tw-bg-gray-400 tw-rounded-full tw-animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="tw-w-2 tw-h-2 tw-bg-gray-400 tw-rounded-full tw-animate-bounce" style={{ animationDelay: '0.2s' }}></div>
             </div>
+            <span className={`tw-text-sm ${
+              isDark ? 'tw-text-gray-300' : 'tw-text-gray-600'
+            }`}>AI is thinking...</span>
           </div>
         </div>
       )}

@@ -36,7 +36,50 @@ export function MorphingWidget({
 }: MorphingWidgetProps) {
   const [input, setInput] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
-  const { getWidgetWidth, getCollapsedWidth } = useResponsiveWidth()
+  const widgetElementRef = useRef<HTMLDivElement>(null)
+  const { getWidgetWidth, getCollapsedWidth, ...breakpointInfo } = useResponsiveWidth()
+  
+  // Debug logging with dimension analysis
+  useEffect(() => {
+    if (widgetElementRef.current) {
+      const rect = widgetElementRef.current.getBoundingClientRect();
+      const computed = window.getComputedStyle(widgetElementRef.current);
+      console.log('🔍 MorphingWidget Dimensions:', {
+        isExpanded,
+        theme,
+        boundingRect: { width: rect.width, height: rect.height },
+        computedStyles: {
+          width: computed.width,
+          height: computed.height,
+          minWidth: computed.minWidth,
+          minHeight: computed.minHeight,
+          display: computed.display,
+          overflow: computed.overflow
+        },
+        inlineStyles: widgetElementRef.current.style.cssText,
+        className: widgetElementRef.current.className,
+        responsiveClasses: {
+          widgetWidth: getWidgetWidth(),
+          collapsedWidth: getCollapsedWidth()
+        },
+        breakpointInfo: { 
+          isMobile: breakpointInfo.isMobile, 
+          isTablet: breakpointInfo.isTablet, 
+          isDesktop: breakpointInfo.isDesktop,
+          windowWidth: breakpointInfo.width
+        }
+      });
+    }
+  }, [isExpanded, theme, getWidgetWidth, getCollapsedWidth, breakpointInfo.isMobile, breakpointInfo.isTablet, breakpointInfo.isDesktop])
+  
+  console.log('MorphingWidget rendered:', { 
+    isExpanded, 
+    theme, 
+    className,
+    widgetWidth: getWidgetWidth(),
+    collapsedWidth: getCollapsedWidth(),
+    breakpointInfo: { isMobile: breakpointInfo.isMobile, isTablet: breakpointInfo.isTablet, isDesktop: breakpointInfo.isDesktop }
+  })
 
   // Focus input when expanded
   useEffect(() => {
@@ -62,6 +105,7 @@ export function MorphingWidget({
       onCollapse()
     }
   }
+
 
   const canSubmit = input.trim().length > 0 && !isLoading && !disabled
 
@@ -189,6 +233,11 @@ export function MorphingWidget({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled}
+            // iOS-specific optimizations
+            autoCapitalize="sentences"
+            autoCorrect="on"
+            autoComplete="off"
+            spellCheck={true}
             className={`
               tw-flex-1 tw-border-0 tw-bg-transparent 
               focus-visible:tw-ring-0 focus-visible:tw-ring-offset-0
@@ -323,6 +372,9 @@ export function MorphingWidget({
           transition: isExpanded 
             ? 'width 350ms cubic-bezier(0.34, 1.56, 0.64, 1)'
             : 'width 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+          // Fallback dimensions to ensure visibility
+          minWidth: isExpanded ? '300px' : '120px',
+          height: '60px'
         }}
       >
         <div
@@ -374,6 +426,9 @@ export function MorphingWidget({
           : 'width 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         transformOrigin: 'center',
         contain: 'layout style paint',
+        // Fallback dimensions to ensure visibility
+        minWidth: isExpanded ? '300px' : '120px',
+        height: '56px'
       }}
       onClick={!isExpanded ? handleClick : undefined}
     >
