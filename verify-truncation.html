@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Truncation CSS</title>
+    <style>
+        body {
+            margin: 20px;
+            font-family: 'Work Sans', Arial, sans-serif;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+        .demo-box {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+        .label {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        /* Simulating the widget question style */
+        .question-normal {
+            font-size: 20px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 20px;
+        }
+        .question-truncated {
+            font-size: 20px;
+            font-weight: bold;
+            color: #000;
+            white-space: nowrap;
+            overflow: hidden;
+            mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 90%, rgba(0,0,0,0) 100%);
+            -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 90%, rgba(0,0,0,0) 100%);
+        }
+        /* Dark mode simulation */
+        .dark-demo {
+            background: #1d1d1d;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .dark-demo .question-truncated {
+            color: white;
+        }
+        /* Modal simulation */
+        .modal-sim {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        .modal-sim-dark {
+            background: rgba(26, 26, 26, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .test-text {
+            color: #28a745;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CSS Truncation Effect Verification</h1>
+        
+        <div class="demo-box">
+            <div class="label">Normal Text (No Truncation):</div>
+            <div class="question-normal">
+                I'll help you add a Super Mario favicon to the test file. Let me first check if the super_mario.png file exists in your project, and then add the favicon link to the HTML head section
+            </div>
+        </div>
+        
+        <div class="demo-box">
+            <div class="label">With Truncation & Fade Effect:</div>
+            <div class="question-truncated">
+                I'll help you add a Super Mario favicon to the test file. Let me first check if the super_mario.png file exists in your project, and then add the favicon link to the HTML head section
+            </div>
+            <div class="test-text">✓ Text should fade out smoothly on the right side</div>
+        </div>
+        
+        <div class="dark-demo">
+            <div class="label">Dark Mode with Truncation:</div>
+            <div class="question-truncated">
+                I'll help you add a Super Mario favicon to the test file. Let me first check if the super_mario.png file exists in your project, and then add the favicon link to the HTML head section
+            </div>
+            <div class="test-text">✓ Should work the same in dark mode</div>
+        </div>
+        
+        <div class="modal-sim">
+            <div class="label">Modal View (Light):</div>
+            <div class="question-truncated">
+                Can you explain the difference between React's useState and useReducer hooks, when to use each one, and provide detailed examples
+            </div>
+        </div>
+        
+        <div class="modal-sim modal-sim-dark">
+            <div class="label">Modal View (Dark):</div>
+            <div class="question-truncated">
+                Can you explain the difference between React's useState and useReducer hooks, when to use each one, and provide detailed examples
+            </div>
+        </div>
+        
+        <div style="margin-top: 40px; padding: 20px; background: #e8f4f8; border-radius: 8px;">
+            <h3 style="margin-top: 0; color: #0066cc;">✅ Expected Behavior:</h3>
+            <ul>
+                <li>Long text should not wrap to multiple lines</li>
+                <li>Text should gradually fade to transparent on the right edge</li>
+                <li>No "..." ellipsis should appear</li>
+                <li>The fade effect should work in both light and dark modes</li>
+                <li>The effect should be visible in both main chat and modal views</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

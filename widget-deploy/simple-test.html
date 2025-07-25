@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simple Widget Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        #console-output {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            min-height: 200px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Widget Test</h1>
+    
+    <div class="info">
+        <strong>Testing widget loading from:</strong><br>
+        https://widget-deploy-789y2lnc0-pro-rata.vercel.app/widget.js
+    </div>
+    
+    <div id="loading-status" class="info">⏳ Loading widget...</div>
+    
+    <h3>Console Output:</h3>
+    <div id="console-output"></div>
+    
+    <h3>DOM Status:</h3>
+    <div id="dom-status"></div>
+    
+    <p>Sample content for the widget to read: This is a test page for the AI chat widget. The widget should appear at the bottom of the page and be able to answer questions about this content.</p>
+    
+    <script>
+        // Capture console output
+        const consoleOutput = document.getElementById('console-output');
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addToConsole(type, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            consoleOutput.textContent += `[${timestamp}] ${type}: ${message}\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            addToConsole('LOG', args.join(' '));
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            addToConsole('ERROR', args.join(' '));
+            originalError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            addToConsole('WARN', args.join(' '));
+            originalWarn.apply(console, args);
+        };
+        
+        // Monitor script loading
+        window.addEventListener('error', (e) => {
+            addToConsole('SCRIPT ERROR', `${e.message} at ${e.filename}:${e.lineno}`);
+        });
+        
+        console.log('Test page loaded, monitoring widget...');
+        
+        // Check widget status every second
+        let checkCount = 0;
+        const maxChecks = 10;
+        
+        const checkWidget = setInterval(() => {
+            checkCount++;
+            
+            // Check if GistWidget is available
+            const widgetAvailable = typeof window.GistWidget !== 'undefined';
+            const widgetRoot = document.getElementById('gist-widget-root');
+            
+            console.log(`Check ${checkCount}: GistWidget=${widgetAvailable}, DOM=${!!widgetRoot}`);
+            
+            const statusDiv = document.getElementById('loading-status');
+            const domStatusDiv = document.getElementById('dom-status');
+            
+            if (widgetAvailable) {
+                statusDiv.className = 'success';
+                statusDiv.innerHTML = '✅ Widget JavaScript loaded successfully!';
+                console.log('Widget API:', window.GistWidget);
+            } else if (checkCount >= maxChecks) {
+                statusDiv.className = 'error';
+                statusDiv.innerHTML = '❌ Widget failed to load after 10 seconds';
+            }
+            
+            // Update DOM status
+            if (widgetRoot) {
+                domStatusDiv.className = 'success';
+                domStatusDiv.innerHTML = '✅ Widget DOM element found: #gist-widget-root';
+                
+                // Check if widget is visible
+                const rect = widgetRoot.getBoundingClientRect();
+                const isVisible = rect.width > 0 && rect.height > 0;
+                domStatusDiv.innerHTML += `<br>Visible: ${isVisible ? 'Yes' : 'No'} (${rect.width}x${rect.height})`;
+                
+                clearInterval(checkWidget);
+            } else if (checkCount >= maxChecks) {
+                domStatusDiv.className = 'error';
+                domStatusDiv.innerHTML = '❌ Widget DOM element not found';
+                clearInterval(checkWidget);
+            } else {
+                domStatusDiv.className = 'info';
+                domStatusDiv.innerHTML = `⏳ Waiting for widget DOM... (check ${checkCount}/${maxChecks})`;
+            }
+        }, 1000);
+    </script>
+    
+    <!-- Load the widget -->
+    <script src="https://widget-deploy-789y2lnc0-pro-rata.vercel.app/widget.js" defer></script>
+</body>
+</html>

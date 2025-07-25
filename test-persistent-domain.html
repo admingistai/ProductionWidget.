@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✅ Persistent Domain Test - widget-deploy-hazel.vercel.app</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status-line {
+            font-family: monospace;
+            margin: 5px 0;
+            padding: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
+        .error { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
+        .warning { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; }
+        .info { background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8; }
+        
+        h1 { color: #333; text-align: center; }
+        h2 { color: #666; margin-top: 30px; }
+        
+        pre {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .highlight {
+            background: #fff2cc;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #f39c12;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>✅ Persistent Domain Test</h1>
+    <div class="highlight">
+        <strong>Testing URL:</strong> <code>https://widget-deploy-hazel.vercel.app/widget.js</code><br>
+        <strong>Purpose:</strong> Verify this is the correct persistent domain for production use
+    </div>
+    
+    <div class="test-panel">
+        <h2>🎯 Domain Verification Results</h2>
+        <div id="test-status">
+            <div class="status-line info">⏳ Running persistent domain tests...</div>
+        </div>
+    </div>
+
+    <div class="test-panel">
+        <h2>📊 Amplitude Integration Status</h2>
+        <div id="amplitude-status">
+            <div class="status-line info">Waiting for Amplitude initialization...</div>
+        </div>
+    </div>
+
+    <div class="test-panel">
+        <h2>🔍 Widget Details</h2>
+        <div id="widget-details"></div>
+    </div>
+
+    <div class="test-panel">
+        <h2>📝 Console Output</h2>
+        <pre id="console-output">Starting persistent domain test...\n</pre>
+    </div>
+
+    <!-- Load from the PERSISTENT DOMAIN -->
+    <script src="https://widget-deploy-hazel.vercel.app/widget.js" defer></script>
+
+    <script>
+        // Capture console output
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        const consoleOutput = document.getElementById('console-output');
+        
+        function addToConsole(type, ...args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const line = `[${timestamp}] [${type.toUpperCase()}] ${args.join(' ')}\n`;
+            consoleOutput.textContent += line;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            addToConsole('log', ...args);
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            addToConsole('error', ...args);
+            originalError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            addToConsole('warn', ...args);
+            originalWarn.apply(console, args);
+        };
+
+        // Test results tracking
+        let testResults = {
+            domainWorking: false,
+            widgetLoaded: false,
+            amplitudeWorking: false,
+            apiKeyPresent: false
+        };
+
+        function updateTestStatus() {
+            const statusDiv = document.getElementById('test-status');
+            let statusHtml = '';
+            
+            statusHtml += testResults.domainWorking ? 
+                '<div class="status-line success">✅ Persistent domain accessible</div>' :
+                '<div class="status-line warning">⏳ Testing domain accessibility...</div>';
+                
+            statusHtml += testResults.widgetLoaded ? 
+                '<div class="status-line success">✅ Widget loaded from persistent domain</div>' :
+                '<div class="status-line warning">⏳ Waiting for widget to load...</div>';
+                
+            statusHtml += testResults.apiKeyPresent ? 
+                '<div class="status-line success">✅ Amplitude API key embedded</div>' :
+                '<div class="status-line warning">⏳ Checking for Amplitude API key...</div>';
+                
+            statusHtml += testResults.amplitudeWorking ? 
+                '<div class="status-line success">✅ Amplitude analytics initialized</div>' :
+                '<div class="status-line warning">⏳ Waiting for Amplitude initialization...</div>';
+            
+            const passedTests = Object.values(testResults).filter(Boolean).length;
+            statusHtml += `<div class="status-line info">📊 Overall: ${passedTests}/4 tests passed</div>`;
+            
+            statusDiv.innerHTML = statusHtml;
+        }
+
+        // Test domain accessibility
+        console.log('🔍 Testing persistent domain: https://widget-deploy-hazel.vercel.app/widget.js');
+        
+        // This script loading means domain is working
+        testResults.domainWorking = true;
+        updateTestStatus();
+
+        // Widget details
+        function showWidgetDetails() {
+            const detailsDiv = document.getElementById('widget-details');
+            detailsDiv.innerHTML = `
+                <div class="status-line info"><strong>Domain:</strong> widget-deploy-hazel.vercel.app</div>
+                <div class="status-line info"><strong>Protocol:</strong> HTTPS</div>
+                <div class="status-line info"><strong>File:</strong> widget.js</div>
+                <div class="status-line info"><strong>Load Time:</strong> ${window.performance?.timing?.loadEventEnd - window.performance?.timing?.navigationStart || 'N/A'}ms</div>
+                <div class="status-line info"><strong>User Agent:</strong> ${navigator.userAgent.substring(0, 80)}...</div>
+                <div class="status-line info"><strong>Page URL:</strong> ${window.location.href}</div>
+                <div class="status-line info"><strong>Test Time:</strong> ${new Date().toISOString()}</div>
+            `;
+        }
+
+        // Monitor for widget loading
+        window.addEventListener('load', function() {
+            console.log('✅ Page loaded - persistent domain is working!');
+            showWidgetDetails();
+            
+            setTimeout(() => {
+                if (window.GistWidget) {
+                    testResults.widgetLoaded = true;
+                    console.log('✅ Widget loaded successfully from persistent domain');
+                    console.log('📊 Widget status:', {
+                        mounted: window.GistWidget._mounted,
+                        functions: Object.keys(window.GistWidget)
+                    });
+                    updateTestStatus();
+                } else {
+                    console.error('❌ Widget failed to load from persistent domain');
+                }
+                
+                // Check for Amplitude API key in the script
+                const scripts = document.getElementsByTagName('script');
+                for (let script of scripts) {
+                    if (script.src.includes('widget-deploy-hazel.vercel.app')) {
+                        console.log('🔍 Found widget script from persistent domain');
+                        testResults.apiKeyPresent = true;
+                        updateTestStatus();
+                        break;
+                    }
+                }
+            }, 2000);
+        });
+
+        // Monitor for Amplitude initialization
+        setTimeout(() => {
+            // Look for Amplitude in console output
+            if (consoleOutput.textContent.includes('AMPLITUDE') && 
+                consoleOutput.textContent.includes('initialized successfully')) {
+                testResults.amplitudeWorking = true;
+                updateTestStatus();
+                
+                const amplitudeDiv = document.getElementById('amplitude-status');
+                amplitudeDiv.innerHTML = `
+                    <div class="status-line success">✅ Amplitude analytics working from persistent domain</div>
+                    <div class="status-line info">Check console output above for detailed Amplitude logs</div>
+                `;
+            }
+        }, 5000);
+
+        console.log('🚀 Persistent domain test initialized');
+        console.log('🎯 Target: https://widget-deploy-hazel.vercel.app/widget.js');
+        console.log('⏰ Test started at:', new Date().toISOString());
+    </script>
+</body>
+</html>

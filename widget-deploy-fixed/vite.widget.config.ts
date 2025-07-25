@@ -10,7 +10,6 @@ export default defineConfig(({ mode }) => {
   console.log('🔍 Vite Build Environment Variables:');
   console.log('  - VITE_WIDGET_API_ENDPOINT:', env.VITE_WIDGET_API_ENDPOINT);
   console.log('  - VITE_WIDGET_SERVICE_KEY:', env.VITE_WIDGET_SERVICE_KEY ? 'Set' : 'Missing');
-  console.log('  - VITE_AMPLITUDE_API_KEY:', env.VITE_AMPLITUDE_API_KEY ? 'Set' : 'Missing');
   console.log('  - NODE_ENV:', env.NODE_ENV);
 
   return {
@@ -50,7 +49,6 @@ export default defineConfig(({ mode }) => {
     'process.env.NODE_ENV': JSON.stringify(env.NODE_ENV || 'production'),
     'process.env.VITE_WIDGET_API_ENDPOINT': JSON.stringify(env.VITE_WIDGET_API_ENDPOINT),
     'process.env.VITE_WIDGET_SERVICE_KEY': JSON.stringify(env.VITE_WIDGET_SERVICE_KEY),
-    'process.env.VITE_AMPLITUDE_API_KEY': JSON.stringify(env.VITE_AMPLITUDE_API_KEY),
   },
   };
 });

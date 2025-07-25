@@ -18,11 +18,6 @@ export interface WidgetConfig {
   maxMessages?: number
   enableWebsiteContext?: boolean
   customSystemPrompt?: string
-  analytics?: {
-    enabled?: boolean
-    amplitudeApiKey?: string
-    debug?: boolean
-  }
 }
 
 export interface APIResponse {

@@ -8,15 +8,9 @@ importers:
 
   .:
     dependencies:
-      '@amplitude/analytics-browser':
-        specifier: ^2.20.1
-        version: 2.20.1
       '@vercel/node':
         specifier: ^5.3.6
         version: 5.3.6(rollup@4.45.1)
-      framer-motion:
-        specifier: ^12.23.9
-        version: 12.23.9(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       lucide-react:
         specifier: ^0.460.0
         version: 0.460.0(react@18.3.1)
@@ -72,36 +66,6 @@ packages:
   '@alloc/quick-lru@5.2.0':
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
-
-  '@amplitude/analytics-browser@2.20.1':
-    resolution: {integrity: sha512-TEDCgLh4A8qzTpZMV5se6gEjkG9yuCkbctBFgtnhv6tthIXgqfKqPdyNWGo16AF4BgzZ9OLJa5RCmp4AmG/uUA==}
-
-  '@amplitude/analytics-client-common@2.3.30':
-    resolution: {integrity: sha512-GGjBgGaRGeww/x7TcOmVKhR6fgUe2l91aSyXiFYWGVU+Cih+tnJ1nePt61JcwUVhLcRogn25NYQ2T2k5KJnfdQ==}
-
-  '@amplitude/analytics-connector@1.6.4':
-    resolution: {integrity: sha512-SpIv0IQMNIq6SH3UqFGiaZyGSc7PBZwRdq7lvP0pBxW8i4Ny+8zwI0pV+VMfMHQwWY3wdIbWw5WQphNjpdq1/Q==}
-
-  '@amplitude/analytics-core@2.18.0':
-    resolution: {integrity: sha512-OXJSgL64NJUN5cGe29WXZpOdV4yHBOulY2plLU+U101GNeT/8I0Y9PZ1k7oBVMWfxxLTeZ+PpphOJHTUnGllBg==}
-
-  '@amplitude/analytics-remote-config@0.4.1':
-    resolution: {integrity: sha512-BYl6kQ9qjztrCACsugpxO+foLaQIC0aSEzoXEAb/gwOzInmqkyyI+Ub+aWTBih4xgB/lhWlOcidWHAmNiTJTNw==}
-
-  '@amplitude/analytics-types@2.9.2':
-    resolution: {integrity: sha512-juhTz396dDP/jLJYP9zDOEAZBtJM0JVvP8G10p1OxUDBVwVIprpQL598F9GRQwVFyqV4CEhDmNyAY0HqqU5bhA==}
-
-  '@amplitude/plugin-autocapture-browser@1.7.1':
-    resolution: {integrity: sha512-4V6nBJK8m1558euEgfxqA0AodH4kKCVydTrcdWsJdEFvuIlI5MXmX65GphqfsSzsKHy35ieMeZ4bkeQJbbCLlw==}
-
-  '@amplitude/plugin-network-capture-browser@1.4.1':
-    resolution: {integrity: sha512-610eXZ4yq5VojL+m3GAMnHJYvC/2Yvtaf71+WHTA4d+pxa+1A68VWWAF+KBM1v85FKiA7Hzpw5EU4oZTRUxmoQ==}
-
-  '@amplitude/plugin-page-view-tracking-browser@2.3.36':
-    resolution: {integrity: sha512-sYMFRTNVknJVb7JFJp9pmoMffI9FPOkQ5VqEqWoVREGS2CBtHVGDfKGsJ8cSWYwMN0mGXicAzAwETGDORBBAlQ==}
-
-  '@amplitude/plugin-web-vitals-browser@0.1.0-frustrationanalytics.0':
-    resolution: {integrity: sha512-xv4sje6/D8r+SgNFTA22FJ5PhtdhN+VSydvs63Frll+qWlyQwaZ1IgDbPyqjzryEkldHRPD7GUaQual+geoIYg==}
 
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
@@ -1079,20 +1043,6 @@ packages:
   fraction.js@4.3.7:
     resolution: {integrity: sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==}
 
-  framer-motion@12.23.9:
-    resolution: {integrity: sha512-TqEHXj8LWfQSKqfdr5Y4mYltYLw96deu6/K9kGDd+ysqRJPNwF9nb5mZcrLmybHbU7gcJ+HQar41U3UTGanbbQ==}
-    peerDependencies:
-      '@emotion/is-prop-valid': '*'
-      react: ^18.0.0 || ^19.0.0
-      react-dom: ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      '@emotion/is-prop-valid':
-        optional: true
-      react:
-        optional: true
-      react-dom:
-        optional: true
-
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -1310,12 +1260,6 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  motion-dom@12.23.9:
-    resolution: {integrity: sha512-6Sv++iWS8XMFCgU1qwKj9l4xuC47Hp4+2jvPfyTXkqDg2tTzSgX6nWKD4kNFXk0k7llO59LZTPuJigza4A2K1A==}
-
-  motion-utils@12.23.6:
-    resolution: {integrity: sha512-eAWoPgr4eFEOFfg2WjIsMoqJTW6Z8MTUCgn/GZ3VRpClWBdnbjryiA3ZSNLyxCTmCQx4RmYX6jX1iWHbenUPNQ==}
-
   mri@1.2.0:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
     engines: {node: '>=4'}
@@ -1526,9 +1470,6 @@ packages:
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
 
-  rxjs@7.8.2:
-    resolution: {integrity: sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==}
-
   scheduler@0.23.2:
     resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
 
@@ -1659,9 +1600,6 @@ packages:
   ts-toolbelt@6.15.5:
     resolution: {integrity: sha512-FZIXf1ksVyLcfr7M317jbB67XFJhOO1YqdTcuGaq9q5jLUoTikukZ+98TPjKiP2jC5CgmYdWWYs0s2nLSU0/1A==}
 
-  tslib@2.8.1:
-    resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
-
   typescript@4.9.5:
     resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
     engines: {node: '>=4.2.0'}
@@ -1739,9 +1677,6 @@ packages:
       yaml:
         optional: true
 
-  web-vitals@5.0.3:
-    resolution: {integrity: sha512-4KmOFYxj7qT6RAdCH0SWwq8eKeXNhAFXR4PmgF6nrWFmrJ41n7lq3UCA6UK0GebQ4uu+XP8e8zGjaDO3wZlqTg==}
-
   webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
 
@@ -1780,64 +1715,6 @@ packages:
 snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
-
-  '@amplitude/analytics-browser@2.20.1':
-    dependencies:
-      '@amplitude/analytics-core': 2.18.0
-      '@amplitude/analytics-remote-config': 0.4.1
-      '@amplitude/plugin-autocapture-browser': 1.7.1
-      '@amplitude/plugin-network-capture-browser': 1.4.1
-      '@amplitude/plugin-page-view-tracking-browser': 2.3.36
-      '@amplitude/plugin-web-vitals-browser': 0.1.0-frustrationanalytics.0
-      tslib: 2.8.1
-
-  '@amplitude/analytics-client-common@2.3.30':
-    dependencies:
-      '@amplitude/analytics-connector': 1.6.4
-      '@amplitude/analytics-core': 2.18.0
-      '@amplitude/analytics-types': 2.9.2
-      tslib: 2.8.1
-
-  '@amplitude/analytics-connector@1.6.4': {}
-
-  '@amplitude/analytics-core@2.18.0':
-    dependencies:
-      '@amplitude/analytics-connector': 1.6.4
-      tslib: 2.8.1
-
-  '@amplitude/analytics-remote-config@0.4.1':
-    dependencies:
-      '@amplitude/analytics-client-common': 2.3.30
-      '@amplitude/analytics-core': 2.18.0
-      '@amplitude/analytics-types': 2.9.2
-      tslib: 2.8.1
-
-  '@amplitude/analytics-types@2.9.2': {}
-
-  '@amplitude/plugin-autocapture-browser@1.7.1':
-    dependencies:
-      '@amplitude/analytics-core': 2.18.0
-      rxjs: 7.8.2
-      tslib: 2.8.1
-
-  '@amplitude/plugin-network-capture-browser@1.4.1':
-    dependencies:
-      '@amplitude/analytics-core': 2.18.0
-      rxjs: 7.8.2
-      tslib: 2.8.1
-
-  '@amplitude/plugin-page-view-tracking-browser@2.3.36':
-    dependencies:
-      '@amplitude/analytics-client-common': 2.3.30
-      '@amplitude/analytics-types': 2.9.2
-      tslib: 2.8.1
-
-  '@amplitude/plugin-web-vitals-browser@0.1.0-frustrationanalytics.0':
-    dependencies:
-      '@amplitude/analytics-core': 2.18.0
-      rxjs: 7.8.2
-      tslib: 2.8.1
-      web-vitals: 5.0.3
 
   '@ampproject/remapping@2.3.0':
     dependencies:
@@ -2715,15 +2592,6 @@ snapshots:
 
   fraction.js@4.3.7: {}
 
-  framer-motion@12.23.9(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
-    dependencies:
-      motion-dom: 12.23.9
-      motion-utils: 12.23.6
-      tslib: 2.8.1
-    optionalDependencies:
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-
   fsevents@2.3.3:
     optional: true
 
@@ -2898,12 +2766,6 @@ snapshots:
 
   mkdirp@3.0.1: {}
 
-  motion-dom@12.23.9:
-    dependencies:
-      motion-utils: 12.23.6
-
-  motion-utils@12.23.6: {}
-
   mri@1.2.0: {}
 
   ms@2.1.3: {}
@@ -3076,10 +2938,6 @@ snapshots:
   run-parallel@1.2.0:
     dependencies:
       queue-microtask: 1.2.3
-
-  rxjs@7.8.2:
-    dependencies:
-      tslib: 2.8.1
 
   scheduler@0.23.2:
     dependencies:
@@ -3256,8 +3114,6 @@ snapshots:
 
   ts-toolbelt@6.15.5: {}
 
-  tslib@2.8.1: {}
-
   typescript@4.9.5: {}
 
   typescript@5.8.3: {}
@@ -3301,8 +3157,6 @@ snapshots:
       lightningcss: 1.30.1
       terser: 5.43.1
       yaml: 2.8.0
-
-  web-vitals@5.0.3: {}
 
   webidl-conversions@3.0.1: {}
 

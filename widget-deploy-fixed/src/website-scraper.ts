@@ -347,13 +347,6 @@ export class WebsiteScraper {
   }
 
   /**
-   * Extract only favicon URL for quick initialization
-   */
-  static extractFaviconOnly(): string | undefined {
-    return this.getFaviconUrl()
-  }
-
-  /**
    * Get favicon URL from the website
    */
   private static getFaviconUrl(): string | undefined {

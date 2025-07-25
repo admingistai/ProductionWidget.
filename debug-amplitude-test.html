@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐛 Debug Amplitude Test - Force Debug Mode</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+        
+        .debug-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .critical {
+            border-left-color: #e74c3c;
+            background: #fdf2f2;
+        }
+        
+        .success {
+            border-left-color: #27ae60;
+            background: #f0f9f0;
+        }
+        
+        .warning {
+            border-left-color: #f39c12;
+            background: #fef9e7;
+        }
+        
+        h1 { color: #2c3e50; text-align: center; }
+        h2 { color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
+        
+        .api-key {
+            font-family: Monaco, monospace;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        
+        .console-output {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 6px;
+            font-family: Monaco, monospace;
+            font-size: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin: 15px 0;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .btn:hover { background: #2980b9; }
+        .btn.success { background: #27ae60; }
+        .btn.danger { background: #e74c3c; }
+        
+        .checklist {
+            background: #ecf0f1;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+        }
+        
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .pending { background: #95a5a6; color: white; }
+        .success { background: #27ae60; color: white; }
+        .failed { background: #e74c3c; color: white; }
+        
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #ecf0f1;
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .metric-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐛 Debug Amplitude Test</h1>
+    
+    <div class="debug-panel critical">
+        <h2>🔑 API Key Verification</h2>
+        <p><strong>Testing with API Key:</strong></p>
+        <div class="api-key">19e735be5fa8c1ba8413eec5978b65e4</div>
+        <p><strong>⚠️ CRITICAL:</strong> Make sure you're viewing the project associated with this EXACT API key in your Amplitude dashboard!</p>
+    </div>
+    
+    <div class="debug-panel">
+        <h2>📊 Real-Time Metrics</h2>
+        <div class="metric-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="events-sent">0</div>
+                <div class="metric-label">Events Sent</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="network-calls">0</div>
+                <div class="metric-label">Network Calls</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="success-rate">0%</div>
+                <div class="metric-label">Success Rate</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="sdk-status">INIT</div>
+                <div class="metric-label">SDK Status</div>
+            </div>
+        </div>
+        
+        <button class="btn success" onclick="sendDebugEvent()">📤 Send Debug Event</button>
+        <button class="btn" onclick="clearConsole()">🧹 Clear Console</button>
+        <button class="btn danger" onclick="testDirectAPI()">🔥 Test Direct API</button>
+    </div>
+    
+    <div class="debug-panel">
+        <h2>✅ Diagnostic Checklist</h2>
+        <div class="checklist">
+            <div class="checklist-item">
+                <div class="status-icon pending" id="check1">1</div>
+                <span>Widget loaded and SDK initialized</span>
+            </div>
+            <div class="checklist-item">
+                <div class="status-icon pending" id="check2">2</div>
+                <span>API key matches your Amplitude project</span>
+            </div>
+            <div class="checklist-item">
+                <div class="status-icon pending" id="check3">3</div>
+                <span>Network requests reaching Amplitude servers</span>
+            </div>
+            <div class="checklist-item">
+                <div class="status-icon pending" id="check4">4</div>
+                <span>Events appearing in console as "Sent to Amplitude"</span>
+            </div>
+            <div class="checklist-item">
+                <div class="status-icon pending" id="check5">5</div>
+                <span>Live Events filters cleared in Amplitude dashboard</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="debug-panel">
+        <h2>🚨 If Events Still Don't Appear in Amplitude</h2>
+        <div class="warning">
+            <h3>Most Likely Causes:</h3>
+            <ol>
+                <li><strong>Wrong Project:</strong> API key belongs to different Amplitude project/organization</li>
+                <li><strong>Account Access:</strong> You don't have access to the correct Amplitude account</li>
+                <li><strong>Filters Active:</strong> Live Events has time/event filters hiding your events</li>
+                <li><strong>Data Processing Delay:</strong> Wait 5-10 minutes and refresh</li>
+            </ol>
+            
+            <h3>Next Steps:</h3>
+            <ul>
+                <li>🔍 Search for API key "19e735be5fa8c1ba8413eec5978b65e4" in your Amplitude settings</li>
+                <li>📊 Check "Data Sources" section instead of Live Events</li>
+                <li>⏰ Try "Event Explorer" with broader time range (last 7 days)</li>
+                <li>👥 Verify you're in the correct Amplitude organization</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="debug-panel">
+        <h2>📝 Debug Console Output</h2>
+        <div id="console-output" class="console-output">Initializing debug console...\n</div>
+    </div>
+
+    <!-- Load widget with debug configuration -->
+    <script>
+        // Override widget config to force debug mode
+        window.addEventListener('DOMContentLoaded', function() {
+            // Force debug configuration
+            const script = document.createElement('script');
+            script.src = 'https://widget-deploy-hazel.vercel.app/widget.js';
+            script.setAttribute('data-config', JSON.stringify({
+                analytics: {
+                    enabled: true,
+                    debug: true  // Force debug mode
+                }
+            }));
+            script.defer = true;
+            document.head.appendChild(script);
+        });
+    </script>
+
+    <script>
+        let metrics = {
+            eventsSent: 0,
+            networkCalls: 0,
+            successfulCalls: 0,
+            sdkInitialized: false
+        };
+
+        // Enhanced console capture
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        const consoleOutput = document.getElementById('console-output');
+        
+        function addToConsole(type, ...args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.join(' ');
+            const line = `[${timestamp}] [${type.toUpperCase()}] ${message}\n`;
+            consoleOutput.textContent += line;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            
+            // Update metrics based on console output
+            analyzeConsoleOutput(type, message);
+        }
+        
+        console.log = function(...args) {
+            addToConsole('log', ...args);
+            return originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            addToConsole('error', ...args);
+            return originalError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            addToConsole('warn', ...args);
+            return originalWarn.apply(console, args);
+        };
+
+        function analyzeConsoleOutput(type, message) {
+            // Check for SDK initialization
+            if (message.includes('Analytics initialized successfully')) {
+                metrics.sdkInitialized = true;
+                updateChecklistItem('check1', 'success');
+                updateMetric('sdk-status', 'READY');
+            }
+            
+            // Check for events sent
+            if (message.includes('Status: ✅ Sent to Amplitude')) {
+                metrics.eventsSent++;
+                updateChecklistItem('check4', 'success');
+            }
+            
+            // Check for network activity
+            if (message.includes('amplitude.com') || message.includes('AMPLITUDE')) {
+                metrics.networkCalls++;
+                if (message.includes('✅') || message.includes('SUCCESS')) {
+                    metrics.successfulCalls++;
+                    updateChecklistItem('check3', 'success');
+                }
+            }
+            
+            updateMetrics();
+        }
+
+        function updateMetrics() {
+            document.getElementById('events-sent').textContent = metrics.eventsSent;
+            document.getElementById('network-calls').textContent = metrics.networkCalls;
+            
+            const successRate = metrics.networkCalls > 0 ? 
+                Math.round((metrics.successfulCalls / metrics.networkCalls) * 100) : 0;
+            document.getElementById('success-rate').textContent = successRate + '%';
+        }
+
+        function updateChecklistItem(id, status) {
+            const element = document.getElementById(id);
+            element.className = `status-icon ${status}`;
+            if (status === 'success') {
+                element.textContent = '✓';
+            }
+        }
+
+        function updateMetric(id, value) {
+            document.getElementById(id).textContent = value;
+        }
+
+        function sendDebugEvent() {
+            console.log('🧪 Manual debug event triggered');
+            
+            if (window.analytics) {
+                window.analytics.track('Manual Debug Event', {
+                    debug_source: 'debug_test_page',
+                    api_key_used: '19e735be5fa8c1ba8413eec5978b65e4',
+                    timestamp: new Date().toISOString(),
+                    domain: window.location.hostname,
+                    user_agent: navigator.userAgent.substring(0, 100),
+                    test_id: Date.now()
+                });
+                console.log('✅ Debug event sent via analytics service');
+            } else {
+                console.error('❌ Analytics service not available');
+            }
+        }
+
+        function clearConsole() {
+            consoleOutput.textContent = 'Console cleared...\n';
+            console.log('🧹 Console cleared');
+        }
+
+        function testDirectAPI() {
+            console.log('🔥 Testing direct API connection...');
+            
+            fetch('https://api2.amplitude.com/2/httpapi', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    api_key: '19e735be5fa8c1ba8413eec5978b65e4',
+                    events: [{
+                        event_type: 'Direct API Test',
+                        time: Date.now(),
+                        user_id: 'debug_user_' + Date.now(),
+                        event_properties: {
+                            test_type: 'direct_api_call',
+                            page: 'debug_test',
+                            timestamp: new Date().toISOString()
+                        }
+                    }]
+                })
+            })
+            .then(response => {
+                console.log(`🌐 Direct API Response: ${response.status} ${response.statusText}`);
+                return response.text();
+            })
+            .then(text => {
+                console.log(`📥 Response body: ${text}`);
+                if (text.includes('success') || text.includes('ok')) {
+                    updateChecklistItem('check3', 'success');
+                }
+            })
+            .catch(error => {
+                console.error(`💥 Direct API Error: ${error.message}`);
+            });
+        }
+
+        // Initialize after page load
+        window.addEventListener('load', function() {
+            console.log('🎬 Debug test page initialized');
+            console.log('🔑 Testing API key: 19e735be5fa8c1ba8413eec5978b65e4');
+            console.log('🌐 Domain:', window.location.hostname);
+            console.log('⏰ Time:', new Date().toISOString());
+            
+            // Check widget status every 2 seconds
+            setInterval(() => {
+                if (window.GistWidget && !metrics.sdkInitialized) {
+                    console.log('📊 Widget detected, checking initialization...');
+                }
+            }, 2000);
+            
+            // Auto-send a test event after 5 seconds
+            setTimeout(() => {
+                if (metrics.sdkInitialized) {
+                    sendDebugEvent();
+                }
+            }, 5000);
+        });
+
+        // Network monitoring
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            const url = args[0];
+            if (typeof url === 'string' && url.includes('amplitude.com')) {
+                console.log(`📡 Network Request: ${url}`);
+                metrics.networkCalls++;
+                
+                return originalFetch.apply(this, args)
+                    .then(response => {
+                        console.log(`📥 Network Response: ${url} - ${response.status}`);
+                        if (response.ok) {
+                            metrics.successfulCalls++;
+                            updateChecklistItem('check3', 'success');
+                        }
+                        updateMetrics();
+                        return response;
+                    })
+                    .catch(error => {
+                        console.error(`💥 Network Error: ${url} - ${error.message}`);
+                        updateMetrics();
+                        throw error;
+                    });
+            }
+            return originalFetch.apply(this, args);
+        };
+    </script>
+</body>
+</html>

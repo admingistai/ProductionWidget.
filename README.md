@@ -87,6 +87,9 @@ Pass configuration via data attribute:
 | `maxMessages` | number | `50` | Maximum chat history to maintain |
 | `enableWebsiteContext` | boolean | `true` | Enable page content reading |
 | `customSystemPrompt` | string | `undefined` | Custom AI behavior prompt |
+| `analytics.enabled` | boolean | `true` | Enable Amplitude analytics tracking |
+| `analytics.amplitudeApiKey` | string | `undefined` | Amplitude API key for tracking |
+| `analytics.debug` | boolean | `false` | Enable debug logging for analytics |
 
 ## Development
 
@@ -219,10 +222,44 @@ And respond with:
 - Safari 14+
 - Mobile browsers (iOS Safari 14+, Chrome Android)
 
+## Analytics Integration
+
+The widget includes Amplitude analytics integration for tracking widget usage:
+
+### Event Tracked
+- **Widget Initialized on Website**: Fired when widget loads on a website
+  - Parameters: `url` (website URL), `domain` (website domain), `timestamp`, `widget_version`
+
+### Configuration
+```html
+<!-- Analytics enabled by default -->
+<script src="https://your-domain.vercel.app/widget.iife.js" defer></script>
+
+<!-- Disable analytics -->
+<script 
+  src="https://your-domain.vercel.app/widget.iife.js" 
+  data-config='{"analytics":{"enabled":false}}'
+  defer>
+</script>
+
+<!-- Custom Amplitude API key -->
+<script 
+  src="https://your-domain.vercel.app/widget.iife.js" 
+  data-config='{"analytics":{"amplitudeApiKey":"your-api-key","debug":true}}'
+  defer>
+</script>
+```
+
+### Environment Variables
+Add to your `.env` file:
+```env
+AMPLITUDE_API_KEY=your-amplitude-api-key-here
+```
+
 ## Bundle Size
 
 - Target: <120KB gzipped
-- Current: ~95KB gzipped (with React 18)
+- Current: ~108KB gzipped (with React 18 + Amplitude SDK)
 
 ## License
 

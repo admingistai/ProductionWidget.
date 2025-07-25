@@ -13,14 +13,12 @@ interface MorphingWidgetProps {
   onCollapse: () => void
   onSubmit: (question: string) => void
   onThemeToggle?: () => void
-  onOpenHistoryModal?: () => void
   placeholder?: string
   isLoading?: boolean
   disabled?: boolean
   className?: string
   theme?: 'light' | 'dark'
   faviconUrl?: string
-  hasMessages?: boolean
 }
 
 export function MorphingWidget({
@@ -29,61 +27,19 @@ export function MorphingWidget({
   onCollapse,
   onSubmit,
   onThemeToggle,
-  onOpenHistoryModal,
   placeholder = "Ask anything...",
   isLoading = false,
   disabled = false,
   className = "",
   theme = 'dark',
-  faviconUrl,
-  hasMessages = false
+  faviconUrl
 }: MorphingWidgetProps) {
   const [input, setInput] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
-  const widgetElementRef = useRef<HTMLDivElement>(null)
-  const { getWidgetWidth, getCollapsedWidth, ...breakpointInfo } = useResponsiveWidth()
+  const { getWidgetWidth, getCollapsedWidth } = useResponsiveWidth()
   
-  // Debug logging with dimension analysis
-  useEffect(() => {
-    if (widgetElementRef.current) {
-      const rect = widgetElementRef.current.getBoundingClientRect();
-      const computed = window.getComputedStyle(widgetElementRef.current);
-      console.log('🔍 MorphingWidget Dimensions:', {
-        isExpanded,
-        theme,
-        boundingRect: { width: rect.width, height: rect.height },
-        computedStyles: {
-          width: computed.width,
-          height: computed.height,
-          minWidth: computed.minWidth,
-          minHeight: computed.minHeight,
-          display: computed.display,
-          overflow: computed.overflow
-        },
-        inlineStyles: widgetElementRef.current.style.cssText,
-        className: widgetElementRef.current.className,
-        responsiveClasses: {
-          widgetWidth: getWidgetWidth(),
-          collapsedWidth: getCollapsedWidth()
-        },
-        breakpointInfo: { 
-          isMobile: breakpointInfo.isMobile, 
-          isTablet: breakpointInfo.isTablet, 
-          isDesktop: breakpointInfo.isDesktop,
-          windowWidth: breakpointInfo.width
-        }
-      });
-    }
-  }, [isExpanded, theme, getWidgetWidth, getCollapsedWidth, breakpointInfo.isMobile, breakpointInfo.isTablet, breakpointInfo.isDesktop])
-  
-  console.log('MorphingWidget rendered:', { 
-    isExpanded, 
-    theme, 
-    className,
-    widgetWidth: getWidgetWidth(),
-    collapsedWidth: getCollapsedWidth(),
-    breakpointInfo: { isMobile: breakpointInfo.isMobile, isTablet: breakpointInfo.isTablet, isDesktop: breakpointInfo.isDesktop }
-  })
+  // Debug logging
+  console.log('MorphingWidget rendered:', { isExpanded, theme, className })
 
   // Focus input when expanded
   useEffect(() => {
@@ -256,8 +212,6 @@ export function MorphingWidget({
             maxLength={500}
           />
 
-
-
           {/* Theme Toggle Button */}
           {onThemeToggle && (
             <div 
@@ -268,7 +222,7 @@ export function MorphingWidget({
               `}
               style={{ 
                 transition: 'opacity 200ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-                transitionDelay: isExpanded ? '125ms' : '0ms',
+                transitionDelay: isExpanded ? '150ms' : '0ms',
                 willChange: 'opacity, transform',
               }}
             >
@@ -304,7 +258,7 @@ export function MorphingWidget({
             `}
             style={{ 
               transition: 'opacity 200ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-              transitionDelay: isExpanded ? '150ms' : '0ms',
+              transitionDelay: isExpanded ? '250ms' : '0ms',
               willChange: 'opacity, transform',
             }}
           >
@@ -378,9 +332,6 @@ export function MorphingWidget({
           transition: isExpanded 
             ? 'width 350ms cubic-bezier(0.34, 1.56, 0.64, 1)'
             : 'width 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-          // Fallback dimensions to ensure visibility
-          minWidth: isExpanded ? '300px' : '120px',
-          height: '60px'
         }}
       >
         <div
@@ -432,9 +383,6 @@ export function MorphingWidget({
           : 'width 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         transformOrigin: 'center',
         contain: 'layout style paint',
-        // Fallback dimensions to ensure visibility
-        minWidth: isExpanded ? '300px' : '120px',
-        height: '56px'
       }}
       onClick={!isExpanded ? handleClick : undefined}
     >

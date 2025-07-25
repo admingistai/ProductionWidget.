@@ -8,8 +8,6 @@ import { ContentOptimizer } from './content-optimizer'
 import { SecureAPIClient } from './secure-api-client'
 import { generateMessageId } from './lib/widget-utils'
 import { useResponsiveWidth } from './hooks/useResponsiveWidth'
-// Analytics tracking for widget events
-import { trackWidgetEvent, showAnalyticsStatus } from './services/analytics'
 import type { WidgetState, ChatMessage, WidgetProps, WidgetConfig, APIResponse, OptimizedContext } from './types/widget'
 
 const DEFAULT_CONFIG: WidgetConfig = {
@@ -31,8 +29,6 @@ export function AIWidget({
 }: WidgetProps) {
   const [state, setState] = useState<WidgetState>('collapsed')
   const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [currentMessageIndex, setCurrentMessageIndex] = useState<number>(0)
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [websiteContext, setWebsiteContext] = useState<OptimizedContext | null>(null)
@@ -61,22 +57,6 @@ export function AIWidget({
     setTheme(prev => prev === 'light' ? 'dark' : 'light')
   }, [])
 
-  // History modal handlers
-  const handleOpenHistoryModal = useCallback(() => {
-    setIsHistoryModalOpen(true)
-  }, [])
-
-  const handleCloseHistoryModal = useCallback(() => {
-    setIsHistoryModalOpen(false)
-  }, [])
-
-  // Navigate to specific message
-  const handleNavigateToMessage = useCallback((index: number) => {
-    if (index >= 0 && index < messages.length) {
-      setCurrentMessageIndex(index)
-    }
-  }, [messages.length])
-
   // Initialize website context and API client
   useEffect(() => {
     const initializeWidget = async () => {
@@ -87,19 +67,6 @@ export function AIWidget({
           hasServiceKey: !!finalConfig.serviceKey,
           enableWebsiteContext: finalConfig.enableWebsiteContext
         })
-        
-        // Extract favicon immediately for better UX
-        if (typeof window !== 'undefined') {
-          try {
-            const initialFavicon = WebsiteScraper.extractFaviconOnly()
-            if (initialFavicon) {
-              setFaviconUrl(initialFavicon)
-              console.log('🎨 Initial favicon extracted:', initialFavicon)
-            }
-          } catch (error) {
-            console.warn('Failed to extract initial favicon:', error)
-          }
-        }
         
         // Initialize API client
         if (finalConfig.apiEndpoint) {
@@ -131,10 +98,9 @@ export function AIWidget({
               
               setWebsiteContext(finalContext)
               
-              // Update favicon only if we get a better one from full context extraction
-              if (rawContext.faviconUrl && (!faviconUrl || rawContext.faviconUrl !== faviconUrl)) {
-                setFaviconUrl(rawContext.faviconUrl)
-                console.log('🎨 Updated favicon from context:', rawContext.faviconUrl)
+              // Extract favicon URL from the context
+              if (finalContext.faviconUrl) {
+                setFaviconUrl(finalContext.faviconUrl)
               }
               
               console.log('Website context extracted:', finalContext)
@@ -146,37 +112,13 @@ export function AIWidget({
             }
           }, 1000)
         }
-        
-        // Track widget mounted event
-        trackWidgetEvent.mounted({
-          has_api_endpoint: !!finalConfig.apiEndpoint,
-          has_service_key: !!finalConfig.serviceKey,
-          website_context_enabled: finalConfig.enableWebsiteContext,
-          theme: theme,
-          position: finalConfig.position,
-          max_messages: finalConfig.maxMessages,
-        })
-        
       } catch (error) {
         console.error('Widget initialization error:', error)
-        trackWidgetEvent.error(error instanceof Error ? error.message : 'Widget initialization failed', {
-          error_type: 'initialization_error',
-          has_api_endpoint: !!finalConfig.apiEndpoint,
-          has_service_key: !!finalConfig.serviceKey,
-        })
       }
     }
 
     initializeWidget()
-  }, [finalConfig.apiEndpoint, finalConfig.serviceKey, finalConfig.enableWebsiteContext, theme, finalConfig.position, finalConfig.maxMessages])
-
-  // Add debug helper to global window object for developers
-  useEffect(() => {
-    if (typeof window !== 'undefined' && import.meta.env.NODE_ENV === 'development') {
-      (window as any).showWidgetAnalytics = showAnalyticsStatus
-      console.log('🔧 [DEBUG] Use window.showWidgetAnalytics() to check analytics status')
-    }
-  }, [])
+  }, [finalConfig.apiEndpoint, finalConfig.serviceKey, finalConfig.enableWebsiteContext])
 
   // State change handler
   const handleStateChange = useCallback((newState: WidgetState) => {
@@ -186,18 +128,11 @@ export function AIWidget({
 
   // Error handler
   const handleError = useCallback((errorMessage: string) => {
-    trackWidgetEvent.error(errorMessage, {
-      error_type: 'widget_error',
-      current_state: state,
-      has_messages: messages.length > 0,
-      conversation_length: messages.length,
-      theme: theme,
-    })
     setError(errorMessage)
     handleStateChange('error')
     onError?.(errorMessage)
     console.error('AI Widget Error:', errorMessage)
-  }, [handleStateChange, onError, state, messages.length, theme])
+  }, [handleStateChange, onError])
 
   // API call using secure backend with website context
   const callAPI = async (question: string): Promise<string> => {
@@ -268,14 +203,6 @@ export function AIWidget({
     setError(null)
     handleStateChange('loading')
 
-    // Track message sent event
-    trackWidgetEvent.messageSent({
-      question_length: question.length,
-      has_website_context: !!websiteContext,
-      conversation_length: messages.length,
-      message_id: generateMessageId(),
-    })
-
     try {
       // Get answer from API
       const answer = await callAPI(question)
@@ -288,28 +215,13 @@ export function AIWidget({
         timestamp: new Date()
       }
 
-      // Track message received event
-      trackWidgetEvent.messageReceived({
-        answer_length: answer.length,
-        question_length: question.length,
-        response_time_ms: Date.now() - newMessage.timestamp.getTime(),
-        has_website_context: !!websiteContext,
-        conversation_length: messages.length + 1,
-        message_id: newMessage.id,
-      })
-
       // Update messages
       setMessages(prev => {
         const updated = [...prev, newMessage]
         // Limit messages if configured
         if (finalConfig.maxMessages && updated.length > finalConfig.maxMessages) {
-          const sliced = updated.slice(-finalConfig.maxMessages)
-          // Update current message index to the latest message
-          setCurrentMessageIndex(sliced.length - 1)
-          return sliced
+          return updated.slice(-finalConfig.maxMessages)
         }
-        // Update current message index to the latest message
-        setCurrentMessageIndex(updated.length - 1)
         return updated
       })
 
@@ -321,46 +233,22 @@ export function AIWidget({
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred'
-      
-      // Track error event
-      trackWidgetEvent.error(errorMessage, {
-        error_type: 'api_call_failed',
-        question_length: question.length,
-        has_website_context: !!websiteContext,
-        conversation_length: messages.length,
-        endpoint: finalConfig.apiEndpoint,
-      })
-      
       handleError(`Failed to get response: ${errorMessage}`)
     } finally {
       setIsLoading(false)
     }
-  }, [isLoading, messages, finalConfig, handleStateChange, handleError, onMessageSent, websiteContext])
+  }, [isLoading, messages, finalConfig, handleStateChange, handleError, onMessageSent])
 
   // Expand widget to show search bar
   const handleExpand = useCallback(() => {
-    trackWidgetEvent.expanded({
-      conversation_length: messages.length,
-      has_messages: messages.length > 0,
-      theme: theme,
-      current_state: state,
-    })
     handleStateChange('expanded')
-  }, [handleStateChange, messages.length, theme, state])
+  }, [handleStateChange])
 
   // Collapse widget to button
   const handleCollapse = useCallback(() => {
-    trackWidgetEvent.collapsed({
-      conversation_length: messages.length,
-      has_messages: messages.length > 0,
-      theme: theme,
-      previous_state: state,
-      session_duration_ms: Date.now() - (messages[0]?.timestamp.getTime() || Date.now()),
-    })
     setError(null)
-    setIsHistoryModalOpen(false)  // Close history modal when collapsing
     handleStateChange('collapsed')
-  }, [handleStateChange, messages, theme, state])
+  }, [handleStateChange])
 
   // Position classes with keyboard awareness
   const getPositionClasses = () => {
@@ -414,47 +302,7 @@ export function AIWidget({
   // Determine if widget is in expanded state
   const isWidgetExpanded = state === 'expanded' || state === 'loading' || state === 'chat-visible'
 
-  // Debug logging with dimension analysis
-  useEffect(() => {
-    if (widgetRef.current) {
-      const rect = widgetRef.current.getBoundingClientRect();
-      const computed = window.getComputedStyle(widgetRef.current);
-      console.log('🔍 AIWidget Dimensions:', {
-        state,
-        isWidgetExpanded,
-        boundingRect: { width: rect.width, height: rect.height, top: rect.top, left: rect.left },
-        computedStyles: {
-          width: computed.width,
-          height: computed.height,
-          minWidth: computed.minWidth,
-          minHeight: computed.minHeight,
-          display: computed.display,
-          position: computed.position,
-          visibility: computed.visibility,
-          opacity: computed.opacity
-        },
-        inlineStyles: widgetRef.current.style.cssText,
-        className: widgetRef.current.className
-      });
-      
-      // Log all children dimensions
-      Array.from(widgetRef.current.children).forEach((child, index) => {
-        const childRect = child.getBoundingClientRect();
-        const childComputed = window.getComputedStyle(child);
-        console.log(`🔍 AIWidget Child ${index}:`, {
-          tagName: child.tagName,
-          className: child.className,
-          boundingRect: { width: childRect.width, height: childRect.height },
-          computedStyles: {
-            width: childComputed.width,
-            height: childComputed.height,
-            display: childComputed.display
-          }
-        });
-      });
-    }
-  }, [state, isWidgetExpanded])
-  
+  // Debug logging
   console.log('AIWidget state:', { state, isWidgetExpanded })
 
   return (
@@ -463,10 +311,7 @@ export function AIWidget({
       className={`tw-fixed ${getPositionClasses()} tw-z-50 tw-transition-all tw-duration-500 tw-ease-out`}
       style={{ 
         ...getBottomStyle(),
-        position: 'fixed',
-        // Fallback dimensions to ensure visibility
-        minWidth: '120px',
-        minHeight: '60px'
+        position: 'fixed'
       }}
     >
       {/* Chat Viewport - positioned absolutely relative to widget center with natural sizing */}
@@ -483,14 +328,8 @@ export function AIWidget({
         >
           <ChatViewport 
             messages={messages}
-            currentMessageIndex={currentMessageIndex}
             isLoading={isLoading}
             theme={theme}
-            onOpenHistoryModal={handleOpenHistoryModal}
-            hasMessages={messages.length > 0}
-            isHistoryModalOpen={isHistoryModalOpen}
-            onCloseHistoryModal={handleCloseHistoryModal}
-            onNavigateToMessage={handleNavigateToMessage}
           />
         </div>
       )}
@@ -508,13 +347,11 @@ export function AIWidget({
           onCollapse={handleCollapse}
           onSubmit={handleSubmit}
           onThemeToggle={handleThemeToggle}
-          onOpenHistoryModal={handleOpenHistoryModal}
           placeholder={finalConfig.placeholder}
           isLoading={isLoading}
           disabled={false}
           theme={theme}
           faviconUrl={faviconUrl}
-          hasMessages={messages.length > 0}
         />
       </div>
 
@@ -530,7 +367,6 @@ export function AIWidget({
           </button>
         </div>
       )}
-
     </div>
   )
 }

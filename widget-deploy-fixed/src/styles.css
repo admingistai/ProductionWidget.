@@ -37,6 +37,7 @@
   font-size: 16px;
   color: inherit;
   isolation: isolate;
+  /* Don't override display - let it be controlled by JS */
   
   /* Enhanced iOS optimizations for keyboard interaction */
   -webkit-text-size-adjust: 100%;
@@ -45,7 +46,8 @@
   /* Improved performance */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Removed contain property that might cause visibility issues */
+  /* Keyboard-ready positioning */
+  contain: layout style paint;
 }
 
 #gist-widget-root *,
@@ -91,51 +93,6 @@
     transform: translateZ(0);
   }
   
-}
-
-/* Fallback widget dimensions when Tailwind classes fail */
-.tw-w-\[500px\] {
-  width: 500px !important;
-}
-
-.tw-w-\[120px\] {
-  width: 120px !important;
-}
-
-.tw-w-\[100px\] {
-  width: 100px !important;
-}
-
-.tw-h-14 {
-  height: 56px !important;
-}
-
-.tw-h-\[60px\] {
-  height: 60px !important;
-}
-
-.tw-w-\[calc\(100vw-32px\)\] {
-  width: calc(100vw - 32px) !important;
-}
-
-.tw-w-\[calc\(100vw-24px\)\] {
-  width: calc(100vw - 24px) !important;
-}
-
-.tw-w-\[calc\(100vw-48px\)\] {
-  width: calc(100vw - 48px) !important;
-}
-
-.tw-max-w-\[460px\] {
-  max-width: 460px !important;
-}
-
-.tw-max-w-\[440px\] {
-  max-width: 440px !important;
-}
-
-.tw-max-w-\[500px\] {
-  max-width: 500px !important;
 }
 
 /* iOS Safari specific fixes */
