@@ -7,7 +7,14 @@
     "build": "vite build --config vite.widget.config.ts",
     "dev": "vite --config vite.widget.config.ts",
     "preview": "vite preview --config vite.widget.config.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:install": "npx playwright install --with-deps",
+    "test:compat": "playwright test -c tests/playwright-tests/playwright.config.ts",
+    "test:compat:ui": "playwright test -c tests/playwright-tests/playwright.config.ts --ui",
+    "test:compat:headed": "playwright test -c tests/playwright-tests/playwright.config.ts --headed",
+    "test:compat:report": "playwright show-report tests/playwright-tests/test-results/html",
+    "test:compat:specific": "playwright test -c tests/playwright-tests/playwright.config.ts -g",
+    "serve:test-sites": "npx http-server tests/test-sites -p 3000"
   },
   "keywords": [
     "ai",
@@ -39,6 +46,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.50.0",
     "@tailwindcss/postcss": "^4.1.11",
     "@types/node": "^24.1.0",
     "@types/react": "^18.3.23",

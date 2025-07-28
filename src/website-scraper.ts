@@ -23,7 +23,7 @@ export interface WebsiteContext {
 }
 
 export class WebsiteScraper {
-  private static readonly MAX_CONTENT_LENGTH = 1500
+  private static readonly MAX_CONTENT_LENGTH = 50000
   private static readonly MIN_CONTENT_LENGTH = 50
 
   /**
@@ -52,6 +52,14 @@ export class WebsiteScraper {
   private static getMainContent(): string {
     // Priority selectors for main content
     const contentSelectors = [
+      // Next.js specific selectors first
+      '#__next main',
+      '#__next article',
+      '#__next [role="main"]',
+      '#__next .main-content',
+      '#__next .content',
+      '[data-testid="main-content"]',
+      // Common selectors
       'main',
       '[role="main"]',
       '.main-content',
@@ -64,6 +72,8 @@ export class WebsiteScraper {
       '.entry-content',
       '.container main',
       '.wrapper .content',
+      // Next.js app container as fallback
+      '#__next',
       'body'
     ]
 
@@ -321,6 +331,10 @@ export class WebsiteScraper {
   private static extractKeyPoints(): string[] {
     const keyPoints: string[] = []
     
+    // First, extract any monetary values from the content
+    const monetaryValues = this.extractMonetaryValues()
+    keyPoints.push(...monetaryValues)
+    
     // Look for lists and highlighted content
     const listItems = document.querySelectorAll('li, .feature, .benefit, .service-item')
     
@@ -331,7 +345,36 @@ export class WebsiteScraper {
       }
     })
 
-    return keyPoints.slice(0, 8) // Limit to 8 key points
+    return keyPoints.slice(0, 10) // Limit to 10 key points
+  }
+
+  /**
+   * Extract monetary values and pricing information
+   */
+  private static extractMonetaryValues(): string[] {
+    const content = document.body.textContent || ''
+    const monetaryValues: string[] = []
+    
+    // Pattern to match monetary values with context
+    const pricePattern = /(?:costs?|priced?|pricing|fee|payment|charge[sd]?|price[sd]?)\s*:?\s*\$[\d,]+(?:\.\d{2})?|\$[\d,]+(?:\.\d{2})?\s+(?:per|for|each|monthly|yearly|annually)/gi
+    
+    // Also match standalone prices with surrounding context (20 chars before and after)
+    const contextPattern = /.{0,20}\$[\d,]+(?:\.\d{2})?.{0,20}/gi
+    
+    const priceMatches = content.match(pricePattern) || []
+    const contextMatches = content.match(contextPattern) || []
+    
+    // Combine and deduplicate
+    const allMatches = [...new Set([...priceMatches, ...contextMatches])]
+    
+    allMatches.forEach(match => {
+      const cleaned = match.trim()
+      if (cleaned && !monetaryValues.some(v => v.includes(cleaned))) {
+        monetaryValues.push(cleaned)
+      }
+    })
+    
+    return monetaryValues.slice(0, 5) // Limit to 5 monetary values
   }
 
   /**
@@ -372,10 +415,8 @@ export class WebsiteScraper {
       }
     }
 
-    // Fallback to checking if favicon.ico exists at root
-    const defaultFavicon = `${window.location.protocol}//${window.location.host}/favicon.ico`
-    
-    // Return the default favicon path (browsers will handle 404 gracefully)
-    return defaultFavicon
+    // If no favicon link found, return undefined
+    // This allows the widget to hide the favicon area completely
+    return undefined
   }
 }

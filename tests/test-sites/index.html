@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Test Site - Widget Compatibility Testing</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        h2 { color: #666; margin-top: 30px; }
+        .section { margin: 30px 0; }
+        .test-content {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .navigation {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .navigation a {
+            color: #0066cc;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: #e6f2ff;
+            border-radius: 4px;
+        }
+        .navigation a:hover {
+            background: #cce5ff;
+        }
+        .dynamic-content {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 100px;
+        }
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Widget Compatibility Test Site</h1>
+        <p>This is a local test site for testing the AI widget compatibility.</p>
+
+        <div class="navigation">
+            <a href="#about">About</a>
+            <a href="#services">Services</a>
+            <a href="#contact">Contact</a>
+            <a href="/page2.html">Page 2</a>
+        </div>
+
+        <div class="section" id="about">
+            <h2>About This Test Site</h2>
+            <div class="test-content">
+                <p>This test site is designed to verify that the AI widget works correctly on different types of web pages. It includes various HTML elements, dynamic content, and navigation patterns to test widget compatibility.</p>
+                <p>The widget should be able to understand the content on this page and answer questions about it.</p>
+            </div>
+        </div>
+
+        <div class="section" id="services">
+            <h2>Our Services</h2>
+            <div class="test-content">
+                <ul>
+                    <li>Web Development - Creating modern, responsive websites</li>
+                    <li>AI Integration - Implementing intelligent chat systems</li>
+                    <li>Testing Services - Comprehensive compatibility testing</li>
+                    <li>Consulting - Expert advice on web technologies</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Dynamic Content Test</h2>
+            <button onclick="loadDynamicContent()">Load Dynamic Content</button>
+            <div id="dynamic-content" class="dynamic-content">
+                <p>Click the button above to load dynamic content...</p>
+            </div>
+        </div>
+
+        <div class="section" id="contact">
+            <h2>Contact Information</h2>
+            <div class="test-content">
+                <p>Email: test@example.com</p>
+                <p>Phone: (555) 123-4567</p>
+                <p>Address: 123 Test Street, Test City, TC 12345</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Technical Details</h2>
+            <div class="test-content">
+                <p>Browser: <span id="browser-info"></span></p>
+                <p>Viewport: <span id="viewport-info"></span></p>
+                <p>Timestamp: <span id="timestamp"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Widget Script -->
+    <script src="https://widget-deploy-hazel.vercel.app/widget.js" defer></script>
+
+    <script>
+        // Dynamic content loading
+        function loadDynamicContent() {
+            const content = document.getElementById('dynamic-content');
+            content.innerHTML = `
+                <h3>Dynamic Content Loaded!</h3>
+                <p>This content was loaded dynamically at ${new Date().toLocaleTimeString()}</p>
+                <p>The AI widget should still work correctly after this content is loaded.</p>
+                <ul>
+                    <li>Dynamic Item 1: Real-time data processing</li>
+                    <li>Dynamic Item 2: Live content updates</li>
+                    <li>Dynamic Item 3: Interactive features</li>
+                </ul>
+            `;
+        }
+
+        // Display browser info
+        document.getElementById('browser-info').textContent = navigator.userAgent;
+        document.getElementById('viewport-info').textContent = `${window.innerWidth} x ${window.innerHeight}`;
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+
+        // Update viewport info on resize
+        window.addEventListener('resize', () => {
+            document.getElementById('viewport-info').textContent = `${window.innerWidth} x ${window.innerHeight}`;
+        });
+
+        // Log widget initialization
+        window.addEventListener('load', () => {
+            console.log('Page loaded, waiting for widget...');
+            setTimeout(() => {
+                if (window.GistWidget) {
+                    console.log('✅ Widget initialized successfully');
+                } else {
+                    console.warn('⚠️ Widget not found after 3 seconds');
+                }
+            }, 3000);
+        });
+    </script>
+</body>
+</html>

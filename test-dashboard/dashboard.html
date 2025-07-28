@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Compatibility Test Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #1a202c;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card.success .stat-value { color: #48bb78; }
+        .stat-card.warning .stat-value { color: #ed8936; }
+        .stat-card.error .stat-value { color: #e53e3e; }
+        .stat-card.info .stat-value { color: #4299e1; }
+
+        .section {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #1a202c;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-badge.pass {
+            background: #c6f6d5;
+            color: #276749;
+        }
+
+        .status-badge.fail {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status-badge.skip {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .browser-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .performance-bar {
+            width: 100%;
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            margin-top: 5px;
+        }
+
+        .performance-fill {
+            height: 100%;
+            background: #48bb78;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .performance-fill.warning { background: #ed8936; }
+        .performance-fill.error { background: #e53e3e; }
+
+        .performance-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .compatibility-matrix {
+            display: grid;
+            grid-template-columns: 150px repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .matrix-cell {
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .matrix-header {
+            background: #f7fafc;
+            font-weight: 600;
+        }
+
+        .matrix-pass {
+            background: #c6f6d5;
+            color: #276749;
+        }
+
+        .matrix-fail {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .matrix-partial {
+            background: #feebc8;
+            color: #744210;
+        }
+
+        .timestamp {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-top: 20px;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-control label {
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .filter-control select,
+        .filter-control input {
+            padding: 6px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .compatibility-matrix {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Widget Compatibility Test Dashboard</h1>
+            <p class="subtitle">Real-time monitoring and analysis of widget performance across browsers and platforms</p>
+        </header>
+
+        <div id="loading" class="loading">Loading test results...</div>
+        <div id="error-container"></div>
+
+        <div id="dashboard-content" style="display: none;">
+            <!-- Summary Statistics -->
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-card success">
+                    <div class="stat-value" id="pass-rate">0%</div>
+                    <div class="stat-label">Overall Pass Rate</div>
+                </div>
+                <div class="stat-card info">
+                    <div class="stat-value" id="total-tests">0</div>
+                    <div class="stat-label">Total Tests</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-value" id="browsers-tested">0</div>
+                    <div class="stat-label">Browsers Tested</div>
+                </div>
+                <div class="stat-card error">
+                    <div class="stat-value" id="failed-tests">0</div>
+                    <div class="stat-label">Failed Tests</div>
+                </div>
+            </div>
+
+            <!-- Browser Compatibility Matrix -->
+            <div class="section">
+                <h2 class="section-title">Browser Compatibility Matrix</h2>
+                <div id="compatibility-matrix"></div>
+            </div>
+
+            <!-- Performance Metrics -->
+            <div class="section">
+                <h2 class="section-title">Performance Metrics</h2>
+                <div class="filter-controls">
+                    <div class="filter-control">
+                        <label for="browser-filter">Browser:</label>
+                        <select id="browser-filter">
+                            <option value="all">All Browsers</option>
+                        </select>
+                    </div>
+                    <div class="filter-control">
+                        <label for="site-filter">Site Type:</label>
+                        <select id="site-filter">
+                            <option value="all">All Sites</option>
+                            <option value="static">Static</option>
+                            <option value="spa">SPA</option>
+                            <option value="cms">CMS</option>
+                            <option value="ecommerce">E-commerce</option>
+                            <option value="docs">Documentation</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="performance-table"></div>
+            </div>
+
+            <!-- Test Results Detail -->
+            <div class="section">
+                <h2 class="section-title">Detailed Test Results</h2>
+                <div id="test-results-table"></div>
+            </div>
+
+            <!-- Chart Section -->
+            <div class="section">
+                <h2 class="section-title">Trends & Analytics</h2>
+                <div class="chart-container">
+                    <canvas id="trends-chart"></canvas>
+                </div>
+            </div>
+
+            <p class="timestamp" id="last-updated"></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script>
+        // Dashboard JavaScript
+        class TestDashboard {
+            constructor() {
+                this.testData = null;
+                this.charts = {};
+                this.filters = {
+                    browser: 'all',
+                    siteType: 'all'
+                };
+            }
+
+            async init() {
+                try {
+                    await this.loadTestResults();
+                    this.setupFilters();
+                    this.render();
+                    this.hideLoading();
+                    this.startAutoRefresh();
+                } catch (error) {
+                    this.showError('Failed to load test results: ' + error.message);
+                }
+            }
+
+            async loadTestResults() {
+                // Try to load from multiple sources
+                const sources = [
+                    '../tests/playwright-tests/test-results/results.json',
+                    './test-results.json',
+                    '../test-results/results.json'
+                ];
+
+                for (const source of sources) {
+                    try {
+                        const response = await fetch(source);
+                        if (response.ok) {
+                            this.testData = await response.json();
+                            return;
+                        }
+                    } catch (e) {
+                        console.log(`Failed to load from ${source}:`, e);
+                    }
+                }
+
+                // If no file found, use sample data
+                this.testData = this.generateSampleData();
+            }
+
+            generateSampleData() {
+                // Generate realistic sample data for demonstration
+                const browsers = ['chromium', 'firefox', 'webkit', 'edge', 'Mobile Chrome', 'Mobile Safari'];
+                const siteTypes = ['static', 'spa', 'cms', 'ecommerce', 'docs'];
+                const sites = [
+                    { name: 'static-html', type: 'static' },
+                    { name: 'nextjs-app', type: 'spa' },
+                    { name: 'react-app', type: 'spa' },
+                    { name: 'wordpress-site', type: 'cms' },
+                    { name: 'shopify-store', type: 'ecommerce' },
+                    { name: 'docusaurus-docs', type: 'docs' }
+                ];
+
+                const suites = [];
+                browsers.forEach(browser => {
+                    sites.forEach(site => {
+                        const passed = Math.random() > 0.15; // 85% pass rate
+                        const loadTime = Math.random() * 3000 + 1000;
+                        const memoryUsage = Math.random() * 30 + 20;
+
+                        suites.push({
+                            title: `Widget Compatibility - ${site.name} - ${browser}`,
+                            browser,
+                            site: site.name,
+                            siteType: site.type,
+                            passed,
+                            duration: Math.random() * 5000 + 2000,
+                            tests: [
+                                {
+                                    title: 'Widget loads correctly',
+                                    status: passed ? 'passed' : 'failed',
+                                    duration: loadTime
+                                },
+                                {
+                                    title: 'Widget interaction works',
+                                    status: passed ? 'passed' : 'failed',
+                                    duration: Math.random() * 1000 + 300
+                                },
+                                {
+                                    title: 'Performance within budget',
+                                    status: loadTime < 3000 ? 'passed' : 'failed',
+                                    duration: 100,
+                                    loadTime,
+                                    memoryUsage
+                                }
+                            ]
+                        });
+                    });
+                });
+
+                return {
+                    stats: {
+                        duration: 120000,
+                        testsCount: suites.length * 3,
+                        passedCount: suites.filter(s => s.passed).length * 3,
+                        failedCount: suites.filter(s => !s.passed).length * 3
+                    },
+                    suites,
+                    generatedAt: new Date().toISOString()
+                };
+            }
+
+            setupFilters() {
+                // Populate browser filter
+                const browsers = [...new Set(this.testData.suites.map(s => s.browser))];
+                const browserFilter = document.getElementById('browser-filter');
+                browsers.forEach(browser => {
+                    const option = document.createElement('option');
+                    option.value = browser;
+                    option.textContent = browser;
+                    browserFilter.appendChild(option);
+                });
+
+                // Setup filter listeners
+                browserFilter.addEventListener('change', (e) => {
+                    this.filters.browser = e.target.value;
+                    this.render();
+                });
+
+                document.getElementById('site-filter').addEventListener('change', (e) => {
+                    this.filters.siteType = e.target.value;
+                    this.render();
+                });
+            }
+
+            render() {
+                this.renderStats();
+                this.renderCompatibilityMatrix();
+                this.renderPerformanceTable();
+                this.renderTestResults();
+                this.renderCharts();
+                this.updateTimestamp();
+            }
+
+            renderStats() {
+                const filteredSuites = this.getFilteredSuites();
+                const totalTests = filteredSuites.reduce((sum, suite) => sum + suite.tests.length, 0);
+                const passedTests = filteredSuites.reduce((sum, suite) => 
+                    sum + suite.tests.filter(t => t.status === 'passed').length, 0);
+                const passRate = totalTests > 0 ? (passedTests / totalTests * 100).toFixed(1) : 0;
+                const browsersCount = [...new Set(filteredSuites.map(s => s.browser))].length;
+                const failedTests = totalTests - passedTests;
+
+                document.getElementById('pass-rate').textContent = `${passRate}%`;
+                document.getElementById('total-tests').textContent = totalTests;
+                document.getElementById('browsers-tested').textContent = browsersCount;
+                document.getElementById('failed-tests').textContent = failedTests;
+            }
+
+            renderCompatibilityMatrix() {
+                const matrix = document.getElementById('compatibility-matrix');
+                matrix.innerHTML = '';
+
+                // Group results by browser and site
+                const results = {};
+                this.getFilteredSuites().forEach(suite => {
+                    if (!results[suite.browser]) results[suite.browser] = {};
+                    results[suite.browser][suite.site] = suite.passed;
+                });
+
+                // Get unique sites
+                const sites = [...new Set(this.getFilteredSuites().map(s => s.site))];
+                
+                // Create matrix
+                const matrixHtml = `
+                    <div class="compatibility-matrix">
+                        <div class="matrix-cell matrix-header">Browser / Site</div>
+                        ${sites.map(site => `<div class="matrix-cell matrix-header">${site}</div>`).join('')}
+                        ${Object.entries(results).map(([browser, siteResults]) => `
+                            <div class="matrix-cell matrix-header">${this.getBrowserIcon(browser)} ${browser}</div>
+                            ${sites.map(site => {
+                                const passed = siteResults[site];
+                                const className = passed === undefined ? '' : passed ? 'matrix-pass' : 'matrix-fail';
+                                const text = passed === undefined ? '-' : passed ? '✓' : '✗';
+                                return `<div class="matrix-cell ${className}">${text}</div>`;
+                            }).join('')}
+                        `).join('')}
+                    </div>
+                `;
+                matrix.innerHTML = matrixHtml;
+            }
+
+            renderPerformanceTable() {
+                const container = document.getElementById('performance-table');
+                const filteredSuites = this.getFilteredSuites();
+
+                // Calculate average performance metrics
+                const performanceData = {};
+                filteredSuites.forEach(suite => {
+                    const key = `${suite.browser} - ${suite.siteType}`;
+                    if (!performanceData[key]) {
+                        performanceData[key] = {
+                            browser: suite.browser,
+                            siteType: suite.siteType,
+                            loadTimes: [],
+                            memoryUsages: [],
+                            count: 0
+                        };
+                    }
+
+                    suite.tests.forEach(test => {
+                        if (test.loadTime) performanceData[key].loadTimes.push(test.loadTime);
+                        if (test.memoryUsage) performanceData[key].memoryUsages.push(test.memoryUsage);
+                    });
+                    performanceData[key].count++;
+                });
+
+                const tableHtml = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Browser</th>
+                                <th>Site Type</th>
+                                <th>Avg Load Time</th>
+                                <th>Avg Memory Usage</th>
+                                <th>Tests Run</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.values(performanceData).map(data => {
+                                const avgLoadTime = data.loadTimes.length > 0 
+                                    ? (data.loadTimes.reduce((a, b) => a + b, 0) / data.loadTimes.length).toFixed(0)
+                                    : 'N/A';
+                                const avgMemory = data.memoryUsages.length > 0
+                                    ? (data.memoryUsages.reduce((a, b) => a + b, 0) / data.memoryUsages.length).toFixed(1)
+                                    : 'N/A';
+
+                                const loadTimeClass = avgLoadTime !== 'N/A' && avgLoadTime < 2000 ? '' : 
+                                                    avgLoadTime < 3000 ? 'warning' : 'error';
+
+                                return `
+                                    <tr>
+                                        <td>${this.getBrowserIcon(data.browser)} ${data.browser}</td>
+                                        <td>${data.siteType}</td>
+                                        <td>
+                                            ${avgLoadTime !== 'N/A' ? `
+                                                <div class="performance-bar">
+                                                    <div class="performance-fill ${loadTimeClass}" style="width: ${Math.min(avgLoadTime / 50, 100)}%">
+                                                        <span class="performance-text">${avgLoadTime}ms</span>
+                                                    </div>
+                                                </div>
+                                            ` : 'N/A'}
+                                        </td>
+                                        <td>${avgMemory !== 'N/A' ? avgMemory + ' MB' : 'N/A'}</td>
+                                        <td>${data.count}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                `;
+                container.innerHTML = tableHtml;
+            }
+
+            renderTestResults() {
+                const container = document.getElementById('test-results-table');
+                const filteredSuites = this.getFilteredSuites();
+
+                const tableHtml = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Test Suite</th>
+                                <th>Browser</th>
+                                <th>Status</th>
+                                <th>Duration</th>
+                                <th>Tests Passed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredSuites.map(suite => {
+                                const passedCount = suite.tests.filter(t => t.status === 'passed').length;
+                                const totalCount = suite.tests.length;
+                                const statusClass = suite.passed ? 'pass' : 'fail';
+
+                                return `
+                                    <tr>
+                                        <td>${suite.site}</td>
+                                        <td>${this.getBrowserIcon(suite.browser)} ${suite.browser}</td>
+                                        <td><span class="status-badge ${statusClass}">${suite.passed ? 'PASS' : 'FAIL'}</span></td>
+                                        <td>${(suite.duration / 1000).toFixed(1)}s</td>
+                                        <td>${passedCount} / ${totalCount}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                `;
+                container.innerHTML = tableHtml;
+            }
+
+            renderCharts() {
+                const ctx = document.getElementById('trends-chart').getContext('2d');
+                
+                // Destroy existing chart if any
+                if (this.charts.trends) {
+                    this.charts.trends.destroy();
+                }
+
+                // Prepare data for chart
+                const browserData = {};
+                this.getFilteredSuites().forEach(suite => {
+                    if (!browserData[suite.browser]) {
+                        browserData[suite.browser] = { passed: 0, failed: 0 };
+                    }
+                    if (suite.passed) {
+                        browserData[suite.browser].passed++;
+                    } else {
+                        browserData[suite.browser].failed++;
+                    }
+                });
+
+                this.charts.trends = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(browserData),
+                        datasets: [
+                            {
+                                label: 'Passed',
+                                data: Object.values(browserData).map(d => d.passed),
+                                backgroundColor: '#48bb78'
+                            },
+                            {
+                                label: 'Failed',
+                                data: Object.values(browserData).map(d => d.failed),
+                                backgroundColor: '#e53e3e'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Test Results by Browser'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                stacked: true
+                            },
+                            y: {
+                                stacked: true,
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            getFilteredSuites() {
+                return this.testData.suites.filter(suite => {
+                    const browserMatch = this.filters.browser === 'all' || suite.browser === this.filters.browser;
+                    const siteTypeMatch = this.filters.siteType === 'all' || suite.siteType === this.filters.siteType;
+                    return browserMatch && siteTypeMatch;
+                });
+            }
+
+            getBrowserIcon(browser) {
+                const icons = {
+                    'chromium': '🌐',
+                    'firefox': '🦊',
+                    'webkit': '🧭',
+                    'edge': '🌊',
+                    'Mobile Chrome': '📱',
+                    'Mobile Safari': '📱'
+                };
+                return icons[browser] || '🌐';
+            }
+
+            updateTimestamp() {
+                const timestamp = this.testData.generatedAt || new Date().toISOString();
+                const date = new Date(timestamp);
+                document.getElementById('last-updated').textContent = 
+                    `Last updated: ${date.toLocaleString()}`;
+            }
+
+            hideLoading() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard-content').style.display = 'block';
+            }
+
+            showError(message) {
+                document.getElementById('loading').style.display = 'none';
+                const errorContainer = document.getElementById('error-container');
+                errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+            }
+
+            startAutoRefresh() {
+                // Auto-refresh every 30 seconds
+                setInterval(() => {
+                    this.loadTestResults().then(() => this.render());
+                }, 30000);
+            }
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const dashboard = new TestDashboard();
+            dashboard.init();
+        });
+    </script>
+</body>
+</html>

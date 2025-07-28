@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Live Site Text Selection Fix</title>
+    <style>
+        /* Simulate common host page CSS that breaks text selection */
+        * {
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f0f0f0;
+            user-select: none !important;
+        }
+        
+        .host-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            user-select: none !important;
+        }
+        
+        /* Even more aggressive blocking like some frameworks do */
+        .host-content * {
+            user-select: none !important;
+            -webkit-user-select: none !important;
+        }
+        
+        .test-instructions {
+            background: #ffeb3b;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="host-content">
+        <h1>🔬 Live Site Text Selection Test</h1>
+        <div class="test-instructions">
+            <strong>This page simulates aggressive host page CSS that blocks text selection.</strong>
+        </div>
+        
+        <p><strong>Test Steps:</strong></p>
+        <ol>
+            <li>Try to select this text - it should be blocked by CSS</li>
+            <li>Open the AI widget</li>
+            <li>Ask a question and get a response</li>
+            <li>Try to select the AI response text - it should work despite the host CSS!</li>
+            <li>Copy and paste the text below to verify</li>
+        </ol>
+        
+        <div style="background: #e8f5e8; padding: 10px; border-radius: 4px; margin: 10px 0;">
+            <strong>Expected Result:</strong> Widget text should be selectable even though this page text is not!
+        </div>
+        
+        <textarea 
+            placeholder="Paste copied widget text here to verify the fix is working..."
+            style="width: 100%; height: 100px; padding: 10px; border: 2px solid #ddd; border-radius: 4px; user-select: text !important;"
+        ></textarea>
+        
+        <p style="color: #666; font-size: 12px; margin-top: 20px;">
+            Note: This page has aggressive CSS rules that prevent text selection everywhere except in the AI widget.
+        </p>
+    </div>
+    
+    <!-- Load the enhanced widget -->
+    <script src="https://widget-deploy-hazel.vercel.app/widget.js" defer></script>
+</body>
+</html>

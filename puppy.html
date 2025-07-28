@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Page</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="public/super_mario.png">
+    
+    <!-- Your widget script -->
+    <script src="dist/widget.iife.js" defer></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            min-height: 100vh;
+            background-color: white;
+            transition: background-color 0.3s ease;
+        }
+        
+        body.dark {
+            background-color: black;
+        }
+        
+        .toggle-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background-color: #ccc;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .toggle-switch.active {
+            background-color: #333;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(30px);
+        }
+    </style>
+</head>
+<body>
+    <div class="toggle-container">
+        <div class="toggle-switch" id="darkModeToggle">
+            <div class="toggle-slider"></div>
+        </div>
+    </div>
+    
+    <script>
+        const toggle = document.getElementById('darkModeToggle');
+        const body = document.body;
+        
+        toggle.addEventListener('click', () => {
+            body.classList.toggle('dark');
+            toggle.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

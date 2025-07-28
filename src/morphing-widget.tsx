@@ -30,7 +30,7 @@ export function MorphingWidget({
   onSubmit,
   onThemeToggle,
   onOpenHistoryModal,
-  placeholder = "Ask anything...",
+  placeholder = "Ask anything..",
   isLoading = false,
   disabled = false,
   className = "",
@@ -161,7 +161,7 @@ export function MorphingWidget({
         // Collapsed Button State
         <div className="tw-flex tw-items-center tw-justify-center tw-h-full group tw-gap-2">
           {/* Stars Icon - positioned just to the left of text */}
-          <div className="tw-w-5 tw-h-5 tw-flex-shrink-0 tw-transform-gpu group-hover:tw-scale-110 group-hover:tw-rotate-12" style={{ transition: 'transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
+          <div className="tw-w-5 tw-h-5 tw-max-w-[20px] tw-max-h-[20px] tw-flex-shrink-0 tw-transform-gpu group-hover:tw-scale-110 group-hover:tw-rotate-12" style={{ transition: 'transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
             <Image
               src={STARS_SVG_GRADIENT_DATA_URL}
               alt="AI Assistant"
@@ -172,20 +172,22 @@ export function MorphingWidget({
           </div>
 
           {/* Button Text */}
-          <span className={`${themeClasses.text} tw-font-medium tw-text-base tw-transition-colors tw-duration-200 tw-whitespace-nowrap`}>
+          <span className={`${themeClasses.text} tw-font-medium tw-text-[14px] tw-transition-colors tw-duration-200 tw-whitespace-nowrap`}>
             {placeholder.split(' ')[0] || 'Ask'}
           </span>
 
-          {/* Favicon Icon - positioned just to the right of text */}
-          <div className="tw-w-6 tw-h-6 tw-flex-shrink-0 tw-transform-gpu group-hover:tw-scale-110 group-hover:-tw-rotate-12" style={{ transition: 'transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
-            <Image
-              src={faviconUrl || DEFAULT_FAVICON_DATA_URL}
-              alt="Site Favicon"
-              width={24}
-              height={24}
-              className="tw-w-full tw-h-full tw-rounded"
-            />
-          </div>
+          {/* Favicon Icon - only show if we have a real favicon (not the transparent default) */}
+          {faviconUrl && faviconUrl !== DEFAULT_FAVICON_DATA_URL && (
+            <div className="tw-w-6 tw-h-6 tw-max-w-[24px] tw-max-h-[24px] tw-flex-shrink-0 tw-transform-gpu group-hover:tw-scale-110 group-hover:-tw-rotate-12" style={{ transition: 'transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
+              <Image
+                src={faviconUrl}
+                alt="Site Favicon"
+                width={24}
+                height={24}
+                className="tw-w-full tw-h-full tw-rounded"
+              />
+            </div>
+          )}
 
           {/* Enhanced glow effect on hover with GPU acceleration */}
           <div 
@@ -245,13 +247,18 @@ export function MorphingWidget({
             className={`
               tw-flex-1 tw-border-0 tw-bg-transparent 
               focus-visible:tw-ring-0 focus-visible:tw-ring-offset-0
-              tw-text-base ${themeClasses.inputText}
+              ${themeClasses.inputText}
               tw-px-2 tw-py-3
               ${isExpanded ? 'tw-opacity-100' : 'tw-opacity-0'}
             `}
             style={{
               transition: 'opacity 250ms cubic-bezier(0.4, 0, 0.2, 1)',
               transitionDelay: isExpanded ? '100ms' : '0ms',
+              // Force 16px font size to prevent iOS zoom
+              fontSize: '16px !important',
+              lineHeight: '1.5',
+              WebkitTextSizeAdjust: '100%',
+              textSizeAdjust: '100%',
             }}
             maxLength={500}
           />

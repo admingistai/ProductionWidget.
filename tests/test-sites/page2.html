@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page 2 - Widget Navigation Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f8ff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #0066cc; }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #0066cc;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: #e6f2ff;
+            border-radius: 4px;
+        }
+        .back-link:hover {
+            background: #cce5ff;
+        }
+        .content-box {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/index.html" class="back-link">← Back to Home</a>
+        
+        <h1>Page 2 - Navigation Test</h1>
+        
+        <div class="content-box">
+            <h2>Testing Widget Persistence</h2>
+            <p>This is the second page of our test site. The AI widget should maintain its state and functionality even after navigating to a new page.</p>
+            <p>Key things to test on this page:</p>
+            <ul>
+                <li>Widget is still visible and functional</li>
+                <li>Previous conversation context might be maintained (depending on implementation)</li>
+                <li>Widget can understand content from this new page</li>
+                <li>No console errors during navigation</li>
+            </ul>
+        </div>
+
+        <div class="content-box">
+            <h2>Page-Specific Content</h2>
+            <p>This page contains different content than the home page to test if the widget can adapt to new contexts.</p>
+            <p>Topics covered on this page:</p>
+            <ul>
+                <li>Advanced Testing Methodologies</li>
+                <li>Cross-Browser Compatibility</li>
+                <li>Performance Optimization</li>
+                <li>Security Best Practices</li>
+            </ul>
+        </div>
+
+        <div class="content-box">
+            <h2>Technical Information</h2>
+            <p>Page loaded at: <span id="load-time"></span></p>
+            <p>Referrer: <span id="referrer"></span></p>
+            <p>Widget Status: <span id="widget-status">Checking...</span></p>
+        </div>
+    </div>
+
+    <!-- AI Widget Script (same as home page) -->
+    <script src="https://widget-deploy-hazel.vercel.app/widget.js" defer></script>
+
+    <script>
+        // Display page info
+        document.getElementById('load-time').textContent = new Date().toLocaleString();
+        document.getElementById('referrer').textContent = document.referrer || 'Direct navigation';
+
+        // Check widget status
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const widgetStatus = document.getElementById('widget-status');
+                if (window.GistWidget) {
+                    widgetStatus.textContent = '✅ Active and ready';
+                    widgetStatus.style.color = 'green';
+                } else {
+                    widgetStatus.textContent = '❌ Not found';
+                    widgetStatus.style.color = 'red';
+                }
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

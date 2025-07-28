@@ -14,9 +14,9 @@ export interface OptimizedContext {
 }
 
 export class ContentOptimizer {
-  private static readonly MAX_SUMMARY_TOKENS = 800
+  private static readonly MAX_SUMMARY_TOKENS = 3000
   private static readonly MAX_BUSINESS_TOKENS = 200
-  private static readonly MAX_PAGE_TOKENS = 300
+  private static readonly MAX_PAGE_TOKENS = 500
   private static readonly CHARS_PER_TOKEN = 4 // Rough estimation
 
   /**
@@ -193,14 +193,14 @@ Please provide helpful, accurate responses based on this website's content and p
   /**
    * Validate context size for API limits
    */
-  static validateContextSize(optimized: OptimizedContext, maxTokens = 1500): boolean {
+  static validateContextSize(optimized: OptimizedContext, maxTokens = 4000): boolean {
     return optimized.estimatedTokens <= maxTokens
   }
 
   /**
    * Truncate context if too large
    */
-  static truncateIfNeeded(optimized: OptimizedContext, maxTokens = 1500): OptimizedContext {
+  static truncateIfNeeded(optimized: OptimizedContext, maxTokens = 4000): OptimizedContext {
     if (optimized.estimatedTokens <= maxTokens) {
       return optimized
     }

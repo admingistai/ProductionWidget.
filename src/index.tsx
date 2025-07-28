@@ -25,7 +25,7 @@ const DEFAULT_CONFIG: WidgetConfig = {
   serviceKey: import.meta.env.VITE_WIDGET_SERVICE_KEY || '',
   position: 'bottom-center',
   theme: 'light',
-  placeholder: 'Ask anything...',
+  placeholder: 'Ask anything..',
   maxMessages: 50,
   enableWebsiteContext: true,
   customSystemPrompt: 'You are a helpful AI assistant embedded in a website. Answer questions concisely and helpfully based on the website context when available.',

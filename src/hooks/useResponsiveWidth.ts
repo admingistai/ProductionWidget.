@@ -15,7 +15,7 @@ export interface BreakpointInfo {
 }
 
 const BREAKPOINTS = {
-  mobile: 480,
+  mobile: 600,
   tablet: 768,
 }
 

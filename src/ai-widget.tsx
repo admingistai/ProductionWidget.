@@ -8,6 +8,7 @@ import { ContentOptimizer } from './content-optimizer'
 import { SecureAPIClient } from './secure-api-client'
 import { generateMessageId } from './lib/widget-utils'
 import { useResponsiveWidth } from './hooks/useResponsiveWidth'
+import { useKeyboardAdjustedPosition } from './hooks/useIOSKeyboard'
 // Analytics tracking for widget events
 import { trackWidgetEvent, showAnalyticsStatus } from './services/analytics'
 import type { WidgetState, ChatMessage, WidgetProps, WidgetConfig, APIResponse, OptimizedContext } from './types/widget'
@@ -17,7 +18,7 @@ const DEFAULT_CONFIG: WidgetConfig = {
   serviceKey: import.meta.env.VITE_WIDGET_SERVICE_KEY || '',
   position: 'bottom-center',
   theme: 'light',
-  placeholder: 'Ask anything...',
+  placeholder: 'Ask anything..',
   maxMessages: 50,
   enableWebsiteContext: true,
   customSystemPrompt: 'You are a helpful AI assistant embedded in a website. Answer questions concisely and helpfully based on the website context when available.'
@@ -41,7 +42,8 @@ export function AIWidget({
   const [faviconUrl, setFaviconUrl] = useState<string | undefined>(undefined)
   const widgetRef = useRef<HTMLDivElement>(null)
   const apiClientRef = useRef<SecureAPIClient | null>(null)
-  const { getWidgetWidth, getContainerPadding } = useResponsiveWidth()
+  const { getWidgetWidth, getContainerPadding, isMobile } = useResponsiveWidth()
+  const keyboard = useKeyboardAdjustedPosition(100) // 100px default bottom position on mobile
 
   const finalConfig: WidgetConfig = { ...DEFAULT_CONFIG, ...config }
   
@@ -118,10 +120,68 @@ export function AIWidget({
         if (finalConfig.enableWebsiteContext && typeof window !== 'undefined') {
           setIsContextLoading(true)
           
-          // Wait a bit for page to fully load
-          setTimeout(() => {
+          let extractionAttempts = 0
+          const maxAttempts = 3
+          const minContentLength = 500 // Minimum chars to consider content meaningful
+          let observer: MutationObserver | null = null
+          
+          const attemptExtraction = () => {
+            extractionAttempts++
+            console.log(`🔍 Attempting content extraction (attempt ${extractionAttempts}/${maxAttempts})...`)
+            
             try {
               const rawContext = WebsiteScraper.extractContent()
+              const contentLength = rawContext.content.length
+              console.log(`📊 Extracted content length: ${contentLength} characters`)
+              
+              // Check if we have meaningful content
+              if (contentLength < minContentLength && extractionAttempts < maxAttempts) {
+                console.log('⏳ Content seems incomplete, waiting for more...')
+                
+                // Set up MutationObserver if not already done
+                if (!observer && extractionAttempts === 1) {
+                  console.log('👁️ Setting up MutationObserver for dynamic content...')
+                  observer = new MutationObserver((mutations) => {
+                    // Check if significant content was added
+                    const hasSignificantChanges = mutations.some(mutation => {
+                      return mutation.addedNodes.length > 0 && 
+                             Array.from(mutation.addedNodes).some(node => 
+                               node.nodeType === Node.ELEMENT_NODE || 
+                               (node.nodeType === Node.TEXT_NODE && node.textContent?.trim().length > 50)
+                             )
+                    })
+                    
+                    if (hasSignificantChanges) {
+                      console.log('🔄 Detected DOM changes, re-attempting extraction...')
+                      observer?.disconnect()
+                      attemptExtraction()
+                    }
+                  })
+                  
+                  // Start observing
+                  observer.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                    characterData: true
+                  })
+                  
+                  // Also set a timeout for next attempt
+                  setTimeout(() => {
+                    if (observer) {
+                      observer.disconnect()
+                      attemptExtraction()
+                    }
+                  }, 2000)
+                }
+                return
+              }
+              
+              // We have content or reached max attempts
+              if (observer) {
+                observer.disconnect()
+                observer = null
+              }
+              
               const optimizedContext = ContentOptimizer.optimize(rawContext)
               
               // Ensure context fits within token limits
@@ -137,14 +197,23 @@ export function AIWidget({
                 console.log('🎨 Updated favicon from context:', rawContext.faviconUrl)
               }
               
-              console.log('Website context extracted:', finalContext)
+              console.log('✅ Website context extracted successfully:', {
+                contentLength,
+                summaryLength: finalContext.summary.length,
+                keyFeatures: finalContext.keyFeatures.length
+              })
             } catch (error) {
               console.warn('Failed to extract website context:', error)
               // Continue without context rather than failing
             } finally {
-              setIsContextLoading(false)
+              if (extractionAttempts >= maxAttempts || observer === null) {
+                setIsContextLoading(false)
+              }
             }
-          }, 1000)
+          }
+          
+          // Initial attempt after short delay
+          setTimeout(attemptExtraction, 1000)
         }
         
         // Track widget mounted event
@@ -364,22 +433,38 @@ export function AIWidget({
 
   // Position classes with keyboard awareness
   const getPositionClasses = () => {
+    // For mobile, don't add transform classes here - handle in getBottomStyle
+    if (isMobile) {
+      return ''
+    }
+    
     const baseClasses = {
       'bottom-left': 'tw-left-6',
       'bottom-right': 'tw-right-6', 
       'bottom-center': 'tw-left-1/2 tw-transform -tw-translate-x-1/2'
     }
     
-    const horizontalClass = baseClasses[finalConfig.position as keyof typeof baseClasses] || baseClasses['bottom-center']
+    const horizontalClass = baseClasses[(finalConfig?.position as keyof typeof baseClasses) || 'bottom-center'] || baseClasses['bottom-center']
     
     return horizontalClass
   }
 
-  // Simple fixed bottom positioning
-  const getBottomStyle = () => {
-    return {
-      bottom: '20px',
-      zIndex: 50
+  // Get keyboard-aware positioning
+  const getBottomStyle = (isMobile: boolean) => {
+    if (isMobile) {
+      // Mobile: fixed bottom positioning that doesn't move with keyboard
+      return {
+        bottom: `${keyboard.bottomPosition}px`,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 50
+      }
+    } else {
+      // Desktop: normal bottom positioning
+      return {
+        bottom: '20px',
+        zIndex: 50
+      }
     }
   }
 
@@ -458,17 +543,17 @@ export function AIWidget({
   console.log('AIWidget state:', { state, isWidgetExpanded })
 
   return (
-    <div 
-      ref={widgetRef}
-      className={`tw-fixed ${getPositionClasses()} tw-z-50 tw-transition-all tw-duration-500 tw-ease-out`}
-      style={{ 
-        ...getBottomStyle(),
-        position: 'fixed',
-        // Fallback dimensions to ensure visibility
-        minWidth: '120px',
-        minHeight: '60px'
-      }}
-    >
+    <>
+      <div 
+        ref={widgetRef}
+        className={`tw-fixed ${getPositionClasses()} tw-z-50 tw-transition-all tw-duration-500 tw-ease-out`}
+        style={{ 
+          ...getBottomStyle(isMobile),
+          // Fallback dimensions to ensure visibility
+          minWidth: '120px',
+          minHeight: '60px'
+        }}
+      >
       {/* Chat Viewport - positioned absolutely relative to widget center with natural sizing */}
       {(state === 'chat-visible' || state === 'loading') && (
         <div 
@@ -531,6 +616,7 @@ export function AIWidget({
         </div>
       )}
 
-    </div>
+      </div>
+    </>
   )
 }

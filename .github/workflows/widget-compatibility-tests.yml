@@ -1,0 +1,366 @@
+name: Widget Compatibility Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of tests to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - static
+          - spa
+          - cms
+          - ecommerce
+          - performance
+
+jobs:
+  # Setup job to prepare test environment
+  setup:
+    name: Setup Test Environment
+    runs-on: ubuntu-latest
+    outputs:
+      widget-url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build widget
+        run: npm run build
+      
+      - name: Deploy test widget
+        id: deploy
+        run: |
+          # In real scenario, deploy to test environment
+          echo "url=https://widget-deploy-hazel.vercel.app/widget.js" >> $GITHUB_OUTPUT
+      
+      - name: Upload widget artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: widget-build
+          path: dist/widget.iife.js
+
+  # Parallel test jobs for different browsers
+  test-chromium:
+    name: Test Chrome
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        site-type: [static, spa, cms, ecommerce, docs]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd tests/playwright-tests && npm ci
+          npx playwright install chromium
+      
+      - name: Run tests - ${{ matrix.site-type }}
+        run: |
+          cd tests/playwright-tests
+          npx playwright test --project=chromium --grep="${{ matrix.site-type }}"
+        env:
+          WIDGET_URL: ${{ needs.setup.outputs.widget-url }}
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-chromium-${{ matrix.site-type }}
+          path: tests/playwright-tests/test-results/
+
+  test-firefox:
+    name: Test Firefox
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        site-type: [static, spa, cms]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd tests/playwright-tests && npm ci
+          npx playwright install firefox
+      
+      - name: Run tests - ${{ matrix.site-type }}
+        run: |
+          cd tests/playwright-tests
+          npx playwright test --project=firefox --grep="${{ matrix.site-type }}"
+        env:
+          WIDGET_URL: ${{ needs.setup.outputs.widget-url }}
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-firefox-${{ matrix.site-type }}
+          path: tests/playwright-tests/test-results/
+
+  test-webkit:
+    name: Test Safari
+    needs: setup
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        site-type: [static, spa]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd tests/playwright-tests && npm ci
+          npx playwright install webkit
+      
+      - name: Run tests - ${{ matrix.site-type }}
+        run: |
+          cd tests/playwright-tests
+          npx playwright test --project=webkit --grep="${{ matrix.site-type }}"
+        env:
+          WIDGET_URL: ${{ needs.setup.outputs.widget-url }}
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-webkit-${{ matrix.site-type }}
+          path: tests/playwright-tests/test-results/
+
+  test-mobile:
+    name: Test Mobile Browsers
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        device: ['Mobile Chrome', 'Mobile Safari']
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd tests/playwright-tests && npm ci
+          npx playwright install
+      
+      - name: Run mobile tests - ${{ matrix.device }}
+        run: |
+          cd tests/playwright-tests
+          npx playwright test --project="${{ matrix.device }}"
+        env:
+          WIDGET_URL: ${{ needs.setup.outputs.widget-url }}
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-${{ matrix.device }}
+          path: tests/playwright-tests/test-results/
+
+  performance-tests:
+    name: Performance Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd tests/playwright-tests && npm ci
+          npx playwright install chromium
+      
+      - name: Run performance tests
+        run: |
+          cd tests/playwright-tests
+          npx playwright test --project=chromium --grep="performance"
+        env:
+          WIDGET_URL: ${{ needs.setup.outputs.widget-url }}
+      
+      - name: Upload performance results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: tests/playwright-tests/test-results/
+
+  accessibility-tests:
+    name: Accessibility Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd tests/playwright-tests && npm ci
+          npx playwright install chromium
+      
+      - name: Run accessibility tests
+        run: |
+          cd tests/playwright-tests
+          npx playwright test --project=chromium --grep="accessibility"
+        env:
+          WIDGET_URL: ${{ needs.setup.outputs.widget-url }}
+      
+      - name: Upload accessibility results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: accessibility-results
+          path: tests/playwright-tests/test-results/
+
+  # Generate comprehensive report
+  report:
+    name: Generate Compatibility Report
+    needs: [test-chromium, test-firefox, test-webkit, test-mobile, performance-tests, accessibility-tests]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Download all test results
+        uses: actions/download-artifact@v3
+        with:
+          path: test-artifacts
+      
+      - name: Merge test results
+        run: |
+          mkdir -p tests/playwright-tests/test-results
+          find test-artifacts -name "*.json" -exec cp {} tests/playwright-tests/test-results/ \;
+      
+      - name: Generate compatibility report
+        run: |
+          cd tests/playwright-tests
+          node scripts/generate-compatibility-report.js
+      
+      - name: Upload final report
+        uses: actions/upload-artifact@v3
+        with:
+          name: compatibility-report
+          path: |
+            tests/playwright-tests/test-results/compatibility-report.html
+            tests/playwright-tests/test-results/compatibility-report.json
+      
+      - name: Post results to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('tests/playwright-tests/test-results/compatibility-report.json', 'utf8'));
+            
+            const comment = `## 🧪 Widget Compatibility Test Results
+            
+            **Overall Pass Rate:** ${report.overallPassRate}%
+            
+            ### Summary
+            - ✅ Passed: ${report.summary.passed}
+            - ❌ Failed: ${report.summary.failed}
+            - ⏭️ Skipped: ${report.summary.skipped}
+            
+            ### Browser Compatibility
+            ${Object.entries(report.browserCompatibility).map(([browser, stats]) => 
+              `- **${browser}**: ${stats.passRate}% (${stats.passed}/${stats.total})`
+            ).join('\n')}
+            
+            ${report.criticalIssues.length > 0 ? `
+            ### ⚠️ Critical Issues
+            ${report.criticalIssues.map(issue => `- ${issue.message}`).join('\n')}
+            ` : ''}
+            
+            [View Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  # Monitor production widget
+  monitor-production:
+    name: Monitor Production Widget
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check widget availability
+        run: |
+          # Check main widget URL
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://widget-deploy-hazel.vercel.app/widget.js)
+          if [ $response -ne 200 ]; then
+            echo "❌ Widget unavailable! HTTP status: $response"
+            exit 1
+          fi
+          echo "✅ Widget is available"
+      
+      - name: Run smoke tests
+        run: |
+          cd tests/playwright-tests
+          npx playwright test e2e/quick-test.spec.ts --project=chromium
+      
+      - name: Send alert on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // In production, this would send alerts to Slack/PagerDuty
+            console.error('Production widget monitoring failed!');
+            // await notifyOncall('Widget down in production');

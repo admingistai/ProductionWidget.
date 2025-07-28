@@ -70,7 +70,7 @@
 
 
 /* Enhanced touch targets for mobile with keyboard awareness */
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   #gist-widget-root button,
   #gist-widget-root [role="button"] {
     min-height: 44px;
@@ -96,6 +96,43 @@
 /* Fallback widget dimensions when Tailwind classes fail */
 .tw-w-\[500px\] {
   width: 500px !important;
+}
+
+/* Prevent font scaling in fullscreen */
+#gist-widget-root {
+  font-size: 16px !important;
+}
+
+/* Ensure button content doesn't scale */
+#gist-widget-root .tw-text-\[14px\] {
+  font-size: 14px !important;
+}
+
+#gist-widget-root .tw-text-base {
+  font-size: 14px !important;
+}
+
+/* Constrain icon containers to prevent scaling in fullscreen */
+#gist-widget-root .tw-max-w-\[20px\] {
+  max-width: 20px !important;
+}
+
+#gist-widget-root .tw-max-h-\[20px\] {
+  max-height: 20px !important;
+}
+
+#gist-widget-root .tw-max-w-\[24px\] {
+  max-width: 24px !important;
+}
+
+#gist-widget-root .tw-max-h-\[24px\] {
+  max-height: 24px !important;
+}
+
+/* Ensure images don't scale beyond their container */
+#gist-widget-root img {
+  max-width: 100%;
+  height: auto;
 }
 
 .tw-w-\[120px\] {
@@ -147,8 +184,8 @@
   }
 }
 
-/* Comprehensive iOS Safari zoom prevention */
-@media screen and (max-device-width: 768px) {
+/* Comprehensive iOS Safari zoom prevention - aligned with mobile breakpoint */
+@media screen and (max-width: 600px) {
   /* Target ALL input elements - maximum specificity to prevent zoom */
   #gist-widget-root input,
   #gist-widget-root input[type="text"],
@@ -171,6 +208,9 @@
     appearance: none !important;
     /* Ensure consistent line height */
     line-height: 1.5 !important;
+    /* Additional text size adjustment prevention */
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
   }
 }
 
@@ -182,15 +222,50 @@
 
 /* Widget-level zoom prevention - works regardless of host page viewport */
 #gist-widget-root {
-  /* Prevent zoom on any touch interaction */
+  /* Disable zoom gestures but ALLOW text selection */
+  -ms-touch-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  /* Prevent text size adjustment */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Additional input focus zoom prevention */
+#gist-widget-root input:focus {
+  /* Prevent any zoom on focus */
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+  /* Ensure no transform on focus */
+  transform: none !important;
+  -webkit-transform: none !important;
+}
+
+/* Enable text selection for chat content specifically - High specificity with !important to override host page CSS */
+#gist-widget-root #gist-widget-root .gist-chat-scroll,
+#gist-widget-root #gist-widget-root .tw-whitespace-pre-wrap,
+#gist-widget-root #gist-widget-root .tw-text-xl,
+#gist-widget-root #gist-widget-root .tw-text-sm,
+#gist-widget-root.gist-widget-container .gist-chat-scroll,
+#gist-widget-root.gist-widget-container .tw-whitespace-pre-wrap,
+#gist-widget-root.gist-widget-container .tw-text-xl,
+#gist-widget-root.gist-widget-container .tw-text-sm {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Keep user-select: none only for UI elements that shouldn't be selectable */
+#gist-widget-root button,
+#gist-widget-root [role="button"],
+#gist-widget-root .tw-animate-pulse,
+#gist-widget-root .tw-animate-bounce {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  /* Disable zoom gestures */
-  -ms-touch-select: none;
-  -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
 }
 
 /* Additional iOS-specific zoom prevention */

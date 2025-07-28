@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favicon Theme Test - Light & Dark</title>
+    <!-- No favicon to test transparent fallback -->
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 40px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        body.light-theme {
+            background-color: #ffffff;
+            color: #333333;
+        }
+        
+        body.dark-theme {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            margin-bottom: 30px;
+        }
+        
+        .theme-switcher {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        .dark-theme .theme-switcher {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .light-btn {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .dark-btn {
+            background-color: #333;
+            color: #fff;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .test-area {
+            padding: 40px;
+            margin: 20px 0;
+            border-radius: 12px;
+            position: relative;
+        }
+        
+        .test-light {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+        }
+        
+        .test-dark {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: #fff;
+        }
+        
+        .test-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        
+        .test-pattern {
+            background-color: #fafafa;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            color: #333;
+        }
+        
+        .dark-theme .test-pattern {
+            background-color: #1a1a1a;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            color: #fff;
+        }
+        
+        .check-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: rgba(0, 255, 0, 0.1);
+        }
+        
+        .check-item::before {
+            content: "✓ ";
+            color: #4caf50;
+            font-weight: bold;
+        }
+        
+        .info-box {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .dark-theme .info-box {
+            background-color: rgba(33, 150, 243, 0.1);
+            color: #fff;
+        }
+    </style>
+</head>
+<body class="light-theme">
+    <div class="container">
+        <h1>Transparent Favicon Test - Theme Compatibility</h1>
+        
+        <div class="theme-switcher">
+            <h2>Page Theme Controls</h2>
+            <button class="light-btn" onclick="setTheme('light')">☀️ Light Theme</button>
+            <button class="dark-btn" onclick="setTheme('dark')">🌙 Dark Theme</button>
+            <p style="margin-top: 10px; opacity: 0.7;">
+                Note: The widget has its own theme toggle button (sun/moon icon)
+            </p>
+        </div>
+        
+        <div class="info-box">
+            <h3>What to Test:</h3>
+            <div class="check-item">No visible favicon placeholder (transparent)</div>
+            <div class="check-item">Widget displays cleanly on all backgrounds</div>
+            <div class="check-item">Theme switching works smoothly</div>
+            <div class="check-item">No orange Gist logo appears</div>
+        </div>
+        
+        <div class="test-area test-light">
+            <h3>Light Gradient Background</h3>
+            <p>The widget should blend seamlessly without showing a favicon placeholder.</p>
+        </div>
+        
+        <div class="test-area test-dark">
+            <h3>Dark Gradient Background</h3>
+            <p>Transparent favicon should work equally well on dark backgrounds.</p>
+        </div>
+        
+        <div class="test-area test-gradient">
+            <h3>Colorful Gradient Background</h3>
+            <p>Even on vibrant backgrounds, no favicon placeholder should be visible.</p>
+        </div>
+        
+        <div class="test-area test-pattern">
+            <h3>Pattern Background</h3>
+            <p>The transparent favicon ensures the widget looks professional on any design.</p>
+        </div>
+    </div>
+
+    <!-- Widget Script -->
+    <script src="dist/widget.iife.js" defer></script>
+    
+    <script>
+        function setTheme(theme) {
+            document.body.className = theme + '-theme';
+        }
+        
+        // Check for user's preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            setTheme('dark');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Next.js Site Simulation - Dynamic Content Loading</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #__next {
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #0070f3;
+            padding-bottom: 10px;
+        }
+        .article-content {
+            line-height: 1.6;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+    <!-- Simulating Next.js app structure -->
+    <div id="__next">
+        <div class="loading">Loading content...</div>
+    </div>
+
+    <!-- Load the widget (simulating layout.tsx) -->
+    <script src="dist/widget.iife.js" defer></script>
+
+    <!-- Simulate Next.js dynamic content loading (page.tsx rendering) -->
+    <script>
+        // Simulate Next.js client-side rendering delay
+        setTimeout(() => {
+            console.log('Simulating Next.js page.tsx content rendering...');
+            document.getElementById('__next').innerHTML = `
+                <main>
+                    <article>
+                        <h1>Local Developer Achieves Enlightenment Through 'Vibecoding'</h1>
+                        
+                        <div class="article-content">
+                            <p><strong>PALO ALTO, Calif.</strong> — In a groundbreaking development that has sent shockwaves through the tech industry, local developer Jake Thompson, 28, claims to have achieved programming nirvana through a revolutionary methodology he calls "vibecoding" — only to have his breakthrough presentation cut short when he exceeded his AI assistant's context window.</p>
+                            
+                            <p>Thompson, who describes himself as a "full-stack vibe engineer," spent the last six months developing what he calls "the most intuitive programming paradigm since someone invented the semicolon." The methodology reportedly involves "feeling the code's energy" and "channeling the algorithm's true intentions."</p>
+                            
+                            <p>"I don't write code anymore," Thompson explained during a press conference held in his converted garage-office, surrounded by crystals and multiple monitors displaying nothing but terminal windows with green text. "I commune with it. I ask the functions what they want to be, and they tell me through vibes."</p>
+                            
+                            <p>The vibecoding methodology, according to Thompson's 847-page manifesto (which he insists was "channeled directly from the JavaScript runtime"), involves three core principles: Contextual Awareness, Token Conservation, and what he mysteriously refers to as "Prompt Engineering Your Soul."</p>
+                            
+                            <p>"Traditional programming is so limiting," said Dr. Miranda Overflow, a professor of Computational Spirituality at Stanford (a department that definitely exists). "Why should we be constrained by syntax when we could be guided by the cosmic energy of our development environment?"</p>
+                            
+                            <p>However, Thompson's moment of triumph turned to tragedy during yesterday's live demonstration when his AI coding assistant suddenly stopped responding mid-explanation. "I was just getting to the good part about how to optimize your chakras for better Git commits," Thompson said, staring at the dreaded message: "I've reached my context limit for this conversation."</p>
+                            
+                            <p>Meanwhile, Thompson has announced plans to launch <strong>"VibeCode Academy,"</strong> an online bootcamp promising to teach students how to "transcend the limitations of syntax" and "achieve one-ness with their IDE." <strong>The course costs $4,999</strong> and comes with a complimentary meditation cushion shaped like a rubber duck.</p>
+                            
+                            <p>As of press time, Thompson was reportedly working on VibeCode 2.0, which he claims will solve the context limit problem by "teaching AI assistants to feel the vibes across multiple conversation sessions." Early beta testers report mixed results, with one noting that their AI assistant has started responding exclusively in haikus about database optimization.</p>
+                            
+                            <p>The tech industry continues to grapple with these existential questions as developers worldwide struggle to balance their spiritual coding journeys with the harsh realities of token limits, context windows, and the occasional need to actually ship working software.</p>
+                        </div>
+                    </article>
+                </main>
+            `;
+            console.log('Content rendered!');
+        }, 2500); // Simulate 2.5 second delay for page.tsx rendering
+    </script>
+</body>
+</html>

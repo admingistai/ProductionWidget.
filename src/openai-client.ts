@@ -22,10 +22,10 @@ export class OpenAIClient {
 
   constructor(config: OpenAIConfig) {
     this.config = {
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4',
       maxTokens: 500,
       temperature: 0.7,
-      systemPrompt: 'You are a helpful AI assistant embedded in a website. Answer questions concisely and helpfully.',
+      systemPrompt: 'You are a helpful AI assistant embedded in a website. Answer as if you ARE the website. For example instead of saying "this companys hours are 9-5", you should say "our hours are 9-5". Answer questions concisely and helpfully. If you cannot answer a question, attempt to find any sort of contact info and tell the user to contact the website/business/person/etc and provide whatever contact info u can. Do not hallucinate',
       ...config
     }
     
