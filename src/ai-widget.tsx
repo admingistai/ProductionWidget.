@@ -79,6 +79,111 @@ export function AIWidget({
     }
   }, [messages.length])
 
+  // Function to extract and update website context
+  const extractWebsiteContext = useCallback(async (isInitial: boolean = false) => {
+    if (!finalConfig.enableWebsiteContext || typeof window === 'undefined') {
+      return
+    }
+
+    setIsContextLoading(true)
+    
+    let extractionAttempts = 0
+    const maxAttempts = 3
+    const minContentLength = 500 // Minimum chars to consider content meaningful
+    let observer: MutationObserver | null = null
+    
+    const attemptExtraction = () => {
+      extractionAttempts++
+      console.log(`🔍 Attempting content extraction (attempt ${extractionAttempts}/${maxAttempts})...`)
+      
+      try {
+        const rawContext = WebsiteScraper.extractContent()
+        const contentLength = rawContext.content.length
+        console.log(`📊 Extracted content length: ${contentLength} characters`)
+        
+        // Check if we have meaningful content
+        if (contentLength < minContentLength && extractionAttempts < maxAttempts) {
+          console.log('⏳ Content seems incomplete, waiting for more...')
+          
+          // Set up MutationObserver if not already done
+          if (!observer && extractionAttempts === 1) {
+            console.log('👁️ Setting up MutationObserver for dynamic content...')
+            observer = new MutationObserver((mutations) => {
+              // Check if significant content was added
+              const hasSignificantChanges = mutations.some(mutation => {
+                return mutation.addedNodes.length > 0 && 
+                       Array.from(mutation.addedNodes).some(node => 
+                         node.nodeType === Node.ELEMENT_NODE || 
+                         (node.nodeType === Node.TEXT_NODE && node.textContent?.trim().length > 50)
+                       )
+              })
+              
+              if (hasSignificantChanges) {
+                console.log('🔄 Detected DOM changes, re-attempting extraction...')
+                observer?.disconnect()
+                attemptExtraction()
+              }
+            })
+            
+            // Start observing
+            observer.observe(document.body, {
+              childList: true,
+              subtree: true,
+              characterData: true
+            })
+            
+            // Also set a timeout for next attempt
+            setTimeout(() => {
+              if (observer) {
+                observer.disconnect()
+                attemptExtraction()
+              }
+            }, 2000)
+          }
+          return
+        }
+        
+        // We have content or reached max attempts
+        if (observer) {
+          observer.disconnect()
+          observer = null
+        }
+        
+        const optimizedContext = ContentOptimizer.optimize(rawContext)
+        
+        // Ensure context fits within token limits
+        const finalContext = ContentOptimizer.validateContextSize(optimizedContext) 
+          ? optimizedContext 
+          : ContentOptimizer.truncateIfNeeded(optimizedContext)
+        
+        setWebsiteContext(finalContext)
+        
+        // Update favicon only if we get a better one from full context extraction
+        if (rawContext.faviconUrl && (!faviconUrl || rawContext.faviconUrl !== faviconUrl)) {
+          setFaviconUrl(rawContext.faviconUrl)
+          console.log('🎨 Updated favicon from context:', rawContext.faviconUrl)
+        }
+        
+        console.log('✅ Website context extracted successfully:', {
+          contentLength,
+          summaryLength: finalContext.summary.length,
+          keyFeatures: finalContext.keyFeatures.length,
+          url: rawContext.url
+        })
+      } catch (error) {
+        console.warn('Failed to extract website context:', error)
+        // Continue without context rather than failing
+      } finally {
+        if (extractionAttempts >= maxAttempts || observer === null) {
+          setIsContextLoading(false)
+        }
+      }
+    }
+    
+    // Start extraction with delay
+    setTimeout(attemptExtraction, isInitial ? 1000 : 500)
+  }, [finalConfig.enableWebsiteContext, faviconUrl])
+
   // Initialize website context and API client
   useEffect(() => {
     const initializeWidget = async () => {
@@ -116,105 +221,8 @@ export function AIWidget({
           apiClientRef.current = null
         }
 
-        // Extract website context if enabled
-        if (finalConfig.enableWebsiteContext && typeof window !== 'undefined') {
-          setIsContextLoading(true)
-          
-          let extractionAttempts = 0
-          const maxAttempts = 3
-          const minContentLength = 500 // Minimum chars to consider content meaningful
-          let observer: MutationObserver | null = null
-          
-          const attemptExtraction = () => {
-            extractionAttempts++
-            console.log(`🔍 Attempting content extraction (attempt ${extractionAttempts}/${maxAttempts})...`)
-            
-            try {
-              const rawContext = WebsiteScraper.extractContent()
-              const contentLength = rawContext.content.length
-              console.log(`📊 Extracted content length: ${contentLength} characters`)
-              
-              // Check if we have meaningful content
-              if (contentLength < minContentLength && extractionAttempts < maxAttempts) {
-                console.log('⏳ Content seems incomplete, waiting for more...')
-                
-                // Set up MutationObserver if not already done
-                if (!observer && extractionAttempts === 1) {
-                  console.log('👁️ Setting up MutationObserver for dynamic content...')
-                  observer = new MutationObserver((mutations) => {
-                    // Check if significant content was added
-                    const hasSignificantChanges = mutations.some(mutation => {
-                      return mutation.addedNodes.length > 0 && 
-                             Array.from(mutation.addedNodes).some(node => 
-                               node.nodeType === Node.ELEMENT_NODE || 
-                               (node.nodeType === Node.TEXT_NODE && node.textContent?.trim().length > 50)
-                             )
-                    })
-                    
-                    if (hasSignificantChanges) {
-                      console.log('🔄 Detected DOM changes, re-attempting extraction...')
-                      observer?.disconnect()
-                      attemptExtraction()
-                    }
-                  })
-                  
-                  // Start observing
-                  observer.observe(document.body, {
-                    childList: true,
-                    subtree: true,
-                    characterData: true
-                  })
-                  
-                  // Also set a timeout for next attempt
-                  setTimeout(() => {
-                    if (observer) {
-                      observer.disconnect()
-                      attemptExtraction()
-                    }
-                  }, 2000)
-                }
-                return
-              }
-              
-              // We have content or reached max attempts
-              if (observer) {
-                observer.disconnect()
-                observer = null
-              }
-              
-              const optimizedContext = ContentOptimizer.optimize(rawContext)
-              
-              // Ensure context fits within token limits
-              const finalContext = ContentOptimizer.validateContextSize(optimizedContext) 
-                ? optimizedContext 
-                : ContentOptimizer.truncateIfNeeded(optimizedContext)
-              
-              setWebsiteContext(finalContext)
-              
-              // Update favicon only if we get a better one from full context extraction
-              if (rawContext.faviconUrl && (!faviconUrl || rawContext.faviconUrl !== faviconUrl)) {
-                setFaviconUrl(rawContext.faviconUrl)
-                console.log('🎨 Updated favicon from context:', rawContext.faviconUrl)
-              }
-              
-              console.log('✅ Website context extracted successfully:', {
-                contentLength,
-                summaryLength: finalContext.summary.length,
-                keyFeatures: finalContext.keyFeatures.length
-              })
-            } catch (error) {
-              console.warn('Failed to extract website context:', error)
-              // Continue without context rather than failing
-            } finally {
-              if (extractionAttempts >= maxAttempts || observer === null) {
-                setIsContextLoading(false)
-              }
-            }
-          }
-          
-          // Initial attempt after short delay
-          setTimeout(attemptExtraction, 1000)
-        }
+        // Extract initial website context
+        extractWebsiteContext(true)
         
         // Track widget mounted event
         trackWidgetEvent.mounted({
@@ -237,7 +245,99 @@ export function AIWidget({
     }
 
     initializeWidget()
-  }, [finalConfig.apiEndpoint, finalConfig.serviceKey, finalConfig.enableWebsiteContext, theme, finalConfig.position, finalConfig.maxMessages])
+  }, [finalConfig.apiEndpoint, finalConfig.serviceKey, finalConfig.enableWebsiteContext, theme, finalConfig.position, finalConfig.maxMessages, extractWebsiteContext])
+
+  // Monitor for page navigation and re-scrape content
+  useEffect(() => {
+    if (!finalConfig.enableWebsiteContext || typeof window === 'undefined') {
+      return
+    }
+
+    let currentUrl = window.location.href
+    let navigationDebounceTimer: NodeJS.Timeout | null = null
+
+    const handleNavigation = () => {
+      const newUrl = window.location.href
+      
+      // Check if URL has actually changed
+      if (newUrl !== currentUrl) {
+        console.log('🌐 Navigation detected:', {
+          from: currentUrl,
+          to: newUrl
+        })
+        
+        currentUrl = newUrl
+        
+        // Debounce rapid navigation
+        if (navigationDebounceTimer) {
+          clearTimeout(navigationDebounceTimer)
+        }
+        
+        navigationDebounceTimer = setTimeout(() => {
+          console.log('🔄 Re-scraping content for new page...')
+          extractWebsiteContext(false)
+          
+          // Track navigation event
+          trackWidgetEvent.pageNavigated({
+            from_url: currentUrl,
+            to_url: newUrl,
+            has_messages: messages.length > 0,
+            conversation_length: messages.length
+          })
+        }, 300) // Wait 300ms to debounce rapid navigation
+      }
+    }
+
+    // Listen for browser back/forward navigation
+    window.addEventListener('popstate', handleNavigation)
+    
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleNavigation)
+    
+    // Override pushState and replaceState for SPA navigation detection
+    const originalPushState = window.history.pushState
+    const originalReplaceState = window.history.replaceState
+    
+    window.history.pushState = function(...args) {
+      originalPushState.apply(window.history, args)
+      setTimeout(handleNavigation, 0) // Delay to ensure URL is updated
+    }
+    
+    window.history.replaceState = function(...args) {
+      originalReplaceState.apply(window.history, args)
+      setTimeout(handleNavigation, 0) // Delay to ensure URL is updated
+    }
+    
+    // Monitor for DOM changes that might indicate page change in SPAs
+    let lastTitle = document.title
+    const titleObserver = new MutationObserver(() => {
+      if (document.title !== lastTitle) {
+        lastTitle = document.title
+        console.log('📄 Page title changed, checking for navigation...')
+        handleNavigation()
+      }
+    })
+    
+    // Start observing title changes
+    titleObserver.observe(document.querySelector('title') || document.head, {
+      subtree: true,
+      characterData: true,
+      childList: true
+    })
+    
+    // Cleanup function
+    return () => {
+      window.removeEventListener('popstate', handleNavigation)
+      window.removeEventListener('hashchange', handleNavigation)
+      window.history.pushState = originalPushState
+      window.history.replaceState = originalReplaceState
+      titleObserver.disconnect()
+      
+      if (navigationDebounceTimer) {
+        clearTimeout(navigationDebounceTimer)
+      }
+    }
+  }, [finalConfig.enableWebsiteContext, extractWebsiteContext, messages.length])
 
   // Add debug helper to global window object for developers
   useEffect(() => {

@@ -209,6 +209,11 @@ export const trackWidgetEvent = {
     analytics.track('message_received', properties);
   },
   
+  pageNavigated: (properties?: Record<string, any>) => {
+    console.log('🌐 [WIDGET EVENT] Page Navigated');
+    analytics.track('page_navigated', properties);
+  },
+  
   error: (error: string, properties?: Record<string, any>) => {
     console.log('💥 [WIDGET EVENT] Widget Error:', error);
     analytics.track('widget_error', { error, ...properties });
