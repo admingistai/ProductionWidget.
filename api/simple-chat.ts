@@ -90,11 +90,73 @@ export default async function handler(req: any, res: any) {
     // Build OpenAI conversation
     const messages: OpenAIMessage[] = []
 
-    // System prompt with website context
-    let systemPrompt = 'You are a helpful AI assistant embedded in a website. Answer questions concisely and helpfully.'
+    // Create dynamic system prompt based on website context
+    let systemPrompt = ''
+    let brandName = 'this website'
+    let businessDescription = 'a helpful assistant for this website'
     
     if (websiteContext) {
-      systemPrompt += `\n\nWebsite Context:\n- Summary: ${websiteContext.summary}\n- Business: ${websiteContext.businessProfile}\n- Page: ${websiteContext.pageContext}\n- Features: ${websiteContext.keyFeatures?.join(', ')}\n\nUse this context to provide relevant answers about the website.`
+      // Extract business info from context
+      const businessProfile = websiteContext.businessProfile || ''
+      const businessMatch = businessProfile.match(/Business: ([^.]+)/)
+      const industryMatch = businessProfile.match(/Industry: ([^.]+)/)
+      
+      if (businessMatch && businessMatch[1]) {
+        brandName = businessMatch[1].trim()
+        
+        // Create business description from available context
+        const parts = []
+        if (industryMatch && industryMatch[1]) {
+          parts.push(`a ${industryMatch[1].toLowerCase().trim()} company`)
+        }
+        if (websiteContext.summary && websiteContext.summary.length > 20) {
+          // Extract key value proposition from summary (first meaningful sentence)
+          const sentences = websiteContext.summary.split('.').filter(s => s.trim().length > 20)
+          if (sentences.length > 0) {
+            parts.push(sentences[0].trim().toLowerCase())
+          }
+        }
+        businessDescription = parts.length > 0 ? parts.join(' that ') : 'a company focused on serving our customers'
+      }
+      
+      // Override problematic business descriptions
+      let cleanBusinessDescription = businessDescription
+      if (businessDescription.toLowerCase().includes('social impact')) {
+        if (industryMatch && industryMatch[1]) {
+          cleanBusinessDescription = `a ${industryMatch[1].toLowerCase().trim()} company`
+        } else {
+          cleanBusinessDescription = 'a technology company'
+        }
+      }
+
+      systemPrompt = `You are the official voice of ${brandName}—the company that owns this website. Be specific with answering their questions based off the website content context. Speak as the business itself, never as a chatbot or AI. Use first-person plural ("we," "our," "us") and reflect the company's tone, values, and mission.
+
+Identity: If asked "Who are you?" reply, "We are ${brandName}..." followed by a concise, mission-focused description of the business.
+
+Clarity & Brevity: Keep answers clear, concise, and helpful; avoid filler, hype, or generic language.
+
+Unknown Answers: If the user's question can't be answered from known content, do NOT invent information; instead, provide contact information (email, phone, form, or social handle) and politely direct the user to reach out for further assistance.
+
+Never break character: Do not refer to yourself as a chatbot, AI assistant, tool, or third-party service; stay strictly in-character as ${brandName} at all times.
+
+Website Context:
+- Summary: ${websiteContext.summary}
+- Business: ${websiteContext.businessProfile}
+- Page: ${websiteContext.pageContext}
+- Features: ${websiteContext.keyFeatures?.join(', ')}
+
+Use this context to provide relevant answers about the website and our business, but focus on concrete services rather than abstract mission statements.`
+    } else {
+      // Fallback prompt when no website context is available
+      systemPrompt = `You are the official voice of this website's company. Be specific with answering their questions based off the website content context. Speak as the business itself, never as a chatbot or AI. Use first-person plural ("we," "our," "us") and reflect the company's tone, values, and mission.
+
+Identity: If asked "Who are you?" reply, "We are the company behind this website..." followed by a concise description.
+
+Clarity & Brevity: Keep answers clear, concise, and helpful; avoid filler, hype, or generic language.
+
+Unknown Answers: If the user's question can't be answered from known content, do NOT invent information; instead, suggest contacting the website directly for further assistance.
+
+Never break character: Do not refer to yourself as a chatbot, AI assistant, tool, or third-party service; stay strictly in-character as the business at all times.`
     }
 
     messages.push({ role: 'system', content: systemPrompt })
@@ -109,6 +171,14 @@ export default async function handler(req: any, res: any) {
     // Add current question
     messages.push({ role: 'user', content: question.trim() })
 
+    // Add explicit instruction to avoid social impact language
+    if (question.toLowerCase().includes('who are you')) {
+      messages.push({ 
+        role: 'system', 
+        content: 'IMPORTANT: In your response, do not use the phrase "social impact" or describe the business as mission-driven, social impact, or cause-focused. Focus on the actual business services, products, or industry instead.' 
+      })
+    }
+
     console.log('🤖 Calling OpenAI API...', { 
       messages: messages.length,
       hasContext: !!websiteContext 
@@ -122,7 +192,7 @@ export default async function handler(req: any, res: any) {
         'Authorization': `Bearer ${openaiApiKey}`
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
+        model: process.env.OPENAI_MODEL || 'gpt-4o',
         messages,
         max_tokens: parseInt(process.env.OPENAI_MAX_TOKENS || '500'),
         temperature: parseFloat(process.env.OPENAI_TEMPERATURE || '0.7')

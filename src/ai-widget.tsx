@@ -18,10 +18,10 @@ const DEFAULT_CONFIG: WidgetConfig = {
   serviceKey: import.meta.env.VITE_WIDGET_SERVICE_KEY || '',
   position: 'bottom-center',
   theme: 'light',
-  placeholder: 'Ask anything..',
+  placeholder: 'Ask anything...',
   maxMessages: 50,
   enableWebsiteContext: true,
-  customSystemPrompt: 'You are a helpful AI assistant embedded in a website. Answer questions concisely and helpfully based on the website context when available.'
+  customSystemPrompt: undefined // Let ContentOptimizer use the standardized template
 }
 
 export function AIWidget({ 
@@ -40,6 +40,7 @@ export function AIWidget({
   const [isContextLoading, setIsContextLoading] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [faviconUrl, setFaviconUrl] = useState<string | undefined>(undefined)
+  const [shouldClearInput, setShouldClearInput] = useState(false)
   const widgetRef = useRef<HTMLDivElement>(null)
   const apiClientRef = useRef<SecureAPIClient | null>(null)
   const { getWidgetWidth, getContainerPadding, isMobile } = useResponsiveWidth()
@@ -79,121 +80,16 @@ export function AIWidget({
     }
   }, [messages.length])
 
-  // Function to extract and update website context
-  const extractWebsiteContext = useCallback(async (isInitial: boolean = false) => {
-    if (!finalConfig.enableWebsiteContext || typeof window === 'undefined') {
-      return
-    }
-
-    setIsContextLoading(true)
-    
-    let extractionAttempts = 0
-    const maxAttempts = 3
-    const minContentLength = 500 // Minimum chars to consider content meaningful
-    let observer: MutationObserver | null = null
-    
-    const attemptExtraction = () => {
-      extractionAttempts++
-      console.log(`🔍 Attempting content extraction (attempt ${extractionAttempts}/${maxAttempts})...`)
-      
-      try {
-        const rawContext = WebsiteScraper.extractContent()
-        const contentLength = rawContext.content.length
-        console.log(`📊 Extracted content length: ${contentLength} characters`)
-        
-        // Check if we have meaningful content
-        if (contentLength < minContentLength && extractionAttempts < maxAttempts) {
-          console.log('⏳ Content seems incomplete, waiting for more...')
-          
-          // Set up MutationObserver if not already done
-          if (!observer && extractionAttempts === 1) {
-            console.log('👁️ Setting up MutationObserver for dynamic content...')
-            observer = new MutationObserver((mutations) => {
-              // Check if significant content was added
-              const hasSignificantChanges = mutations.some(mutation => {
-                return mutation.addedNodes.length > 0 && 
-                       Array.from(mutation.addedNodes).some(node => 
-                         node.nodeType === Node.ELEMENT_NODE || 
-                         (node.nodeType === Node.TEXT_NODE && node.textContent?.trim().length > 50)
-                       )
-              })
-              
-              if (hasSignificantChanges) {
-                console.log('🔄 Detected DOM changes, re-attempting extraction...')
-                observer?.disconnect()
-                attemptExtraction()
-              }
-            })
-            
-            // Start observing
-            observer.observe(document.body, {
-              childList: true,
-              subtree: true,
-              characterData: true
-            })
-            
-            // Also set a timeout for next attempt
-            setTimeout(() => {
-              if (observer) {
-                observer.disconnect()
-                attemptExtraction()
-              }
-            }, 2000)
-          }
-          return
-        }
-        
-        // We have content or reached max attempts
-        if (observer) {
-          observer.disconnect()
-          observer = null
-        }
-        
-        const optimizedContext = ContentOptimizer.optimize(rawContext)
-        
-        // Ensure context fits within token limits
-        const finalContext = ContentOptimizer.validateContextSize(optimizedContext) 
-          ? optimizedContext 
-          : ContentOptimizer.truncateIfNeeded(optimizedContext)
-        
-        setWebsiteContext(finalContext)
-        
-        // Update favicon only if we get a better one from full context extraction
-        if (rawContext.faviconUrl && (!faviconUrl || rawContext.faviconUrl !== faviconUrl)) {
-          setFaviconUrl(rawContext.faviconUrl)
-          console.log('🎨 Updated favicon from context:', rawContext.faviconUrl)
-        }
-        
-        console.log('✅ Website context extracted successfully:', {
-          contentLength,
-          summaryLength: finalContext.summary.length,
-          keyFeatures: finalContext.keyFeatures.length,
-          url: rawContext.url
-        })
-      } catch (error) {
-        console.warn('Failed to extract website context:', error)
-        // Continue without context rather than failing
-      } finally {
-        if (extractionAttempts >= maxAttempts || observer === null) {
-          setIsContextLoading(false)
-        }
-      }
-    }
-    
-    // Start extraction with delay
-    setTimeout(attemptExtraction, isInitial ? 1000 : 500)
-  }, [finalConfig.enableWebsiteContext, faviconUrl])
-
   // Initialize website context and API client
   useEffect(() => {
     const initializeWidget = async () => {
       try {
-        console.log('🔧 Widget initialization starting...', { 
-          hasEndpoint: !!finalConfig.apiEndpoint,
-          endpoint: finalConfig.apiEndpoint,
-          hasServiceKey: !!finalConfig.serviceKey,
-          enableWebsiteContext: finalConfig.enableWebsiteContext
-        })
+        // console.log('🔧 Widget initialization starting...', { 
+        //   hasEndpoint: !!finalConfig.apiEndpoint,
+        //   endpoint: finalConfig.apiEndpoint,
+        //   hasServiceKey: !!finalConfig.serviceKey,
+        //   enableWebsiteContext: finalConfig.enableWebsiteContext
+        // })
         
         // Extract favicon immediately for better UX
         if (typeof window !== 'undefined') {
@@ -201,28 +97,125 @@ export function AIWidget({
             const initialFavicon = WebsiteScraper.extractFaviconOnly()
             if (initialFavicon) {
               setFaviconUrl(initialFavicon)
-              console.log('🎨 Initial favicon extracted:', initialFavicon)
+              // console.log('🎨 Initial favicon extracted:', initialFavicon)
             }
           } catch (error) {
-            console.warn('Failed to extract initial favicon:', error)
+            // console.warn('Failed to extract initial favicon:', error)
           }
         }
         
         // Initialize API client
         if (finalConfig.apiEndpoint) {
-          console.log('🤖 Creating Secure API client...')
+          // console.log('🤖 Creating Secure API client...')
           apiClientRef.current = new SecureAPIClient({
             apiEndpoint: finalConfig.apiEndpoint,
             serviceKey: finalConfig.serviceKey
           })
-          console.log('✅ Secure API client created successfully')
+          // console.log('✅ Secure API client created successfully')
         } else {
-          console.warn('⚠️ No API endpoint provided - API client will not be initialized')
+          // console.warn('⚠️ No API endpoint provided - API client will not be initialized')
           apiClientRef.current = null
         }
 
-        // Extract initial website context
-        extractWebsiteContext(true)
+        // Extract website context if enabled
+        if (finalConfig.enableWebsiteContext && typeof window !== 'undefined') {
+          setIsContextLoading(true)
+          
+          let extractionAttempts = 0
+          const maxAttempts = 3
+          const minContentLength = 500 // Minimum chars to consider content meaningful
+          let observer: MutationObserver | null = null
+          
+          const attemptExtraction = () => {
+            extractionAttempts++
+            // console.log(`🔍 Attempting content extraction (attempt ${extractionAttempts}/${maxAttempts})...`)
+            
+            try {
+              const rawContext = WebsiteScraper.extractContent()
+              const contentLength = rawContext.content.length
+              // console.log(`📊 Extracted content length: ${contentLength} characters`)
+              
+              // Check if we have meaningful content
+              if (contentLength < minContentLength && extractionAttempts < maxAttempts) {
+                // console.log('⏳ Content seems incomplete, waiting for more...')
+                
+                // Set up MutationObserver if not already done
+                if (!observer && extractionAttempts === 1) {
+                  // console.log('👁️ Setting up MutationObserver for dynamic content...')
+                  observer = new MutationObserver((mutations) => {
+                    // Check if significant content was added
+                    const hasSignificantChanges = mutations.some(mutation => {
+                      return mutation.addedNodes.length > 0 && 
+                             Array.from(mutation.addedNodes).some(node => 
+                               node.nodeType === Node.ELEMENT_NODE || 
+                               (node.nodeType === Node.TEXT_NODE && (node.textContent?.trim()?.length || 0) > 50)
+                             )
+                    })
+                    
+                    if (hasSignificantChanges) {
+                      // console.log('🔄 Detected DOM changes, re-attempting extraction...')
+                      observer?.disconnect()
+                      attemptExtraction()
+                    }
+                  })
+                  
+                  // Start observing
+                  observer.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                    characterData: true
+                  })
+                  
+                  // Also set a timeout for next attempt
+                  setTimeout(() => {
+                    if (observer) {
+                      observer.disconnect()
+                      attemptExtraction()
+                    }
+                  }, 2000)
+                }
+                return
+              }
+              
+              // We have content or reached max attempts
+              if (observer) {
+                observer.disconnect()
+                observer = null
+              }
+              
+              const optimizedContext = ContentOptimizer.optimize(rawContext)
+              
+              // Ensure context fits within token limits
+              const finalContext = ContentOptimizer.validateContextSize(optimizedContext) 
+                ? optimizedContext 
+                : ContentOptimizer.truncateIfNeeded(optimizedContext)
+              
+              setWebsiteContext(finalContext)
+              
+              // Update favicon only if we get a better one from full context extraction
+              if (rawContext.faviconUrl && (!faviconUrl || rawContext.faviconUrl !== faviconUrl)) {
+                setFaviconUrl(rawContext.faviconUrl)
+                // console.log('🎨 Updated favicon from context:', rawContext.faviconUrl)
+              }
+              
+              // console.log('✅ Website context extracted successfully:', {
+              //   contentLength,
+              //   summaryLength: finalContext.summary.length,
+              //   keyFeatures: finalContext.keyFeatures.length
+              // })
+            } catch (error) {
+              // console.warn('Failed to extract website context:', error)
+              // Continue without context rather than failing
+            } finally {
+              if (extractionAttempts >= maxAttempts || observer === null) {
+                setIsContextLoading(false)
+              }
+            }
+          }
+          
+          // Initial attempt after short delay
+          setTimeout(attemptExtraction, 1000)
+        }
         
         // Track widget mounted event
         trackWidgetEvent.mounted({
@@ -235,7 +228,7 @@ export function AIWidget({
         })
         
       } catch (error) {
-        console.error('Widget initialization error:', error)
+        // console.error('Widget initialization error:', error)
         trackWidgetEvent.error(error instanceof Error ? error.message : 'Widget initialization failed', {
           error_type: 'initialization_error',
           has_api_endpoint: !!finalConfig.apiEndpoint,
@@ -245,107 +238,25 @@ export function AIWidget({
     }
 
     initializeWidget()
-  }, [finalConfig.apiEndpoint, finalConfig.serviceKey, finalConfig.enableWebsiteContext, theme, finalConfig.position, finalConfig.maxMessages, extractWebsiteContext])
-
-  // Monitor for page navigation and re-scrape content
-  useEffect(() => {
-    if (!finalConfig.enableWebsiteContext || typeof window === 'undefined') {
-      return
-    }
-
-    let currentUrl = window.location.href
-    let navigationDebounceTimer: NodeJS.Timeout | null = null
-
-    const handleNavigation = () => {
-      const newUrl = window.location.href
-      
-      // Check if URL has actually changed
-      if (newUrl !== currentUrl) {
-        console.log('🌐 Navigation detected:', {
-          from: currentUrl,
-          to: newUrl
-        })
-        
-        currentUrl = newUrl
-        
-        // Debounce rapid navigation
-        if (navigationDebounceTimer) {
-          clearTimeout(navigationDebounceTimer)
-        }
-        
-        navigationDebounceTimer = setTimeout(() => {
-          console.log('🔄 Re-scraping content for new page...')
-          extractWebsiteContext(false)
-          
-          // Track navigation event
-          trackWidgetEvent.pageNavigated({
-            from_url: currentUrl,
-            to_url: newUrl,
-            has_messages: messages.length > 0,
-            conversation_length: messages.length
-          })
-        }, 300) // Wait 300ms to debounce rapid navigation
-      }
-    }
-
-    // Listen for browser back/forward navigation
-    window.addEventListener('popstate', handleNavigation)
-    
-    // Listen for hash changes
-    window.addEventListener('hashchange', handleNavigation)
-    
-    // Override pushState and replaceState for SPA navigation detection
-    const originalPushState = window.history.pushState
-    const originalReplaceState = window.history.replaceState
-    
-    window.history.pushState = function(...args) {
-      originalPushState.apply(window.history, args)
-      setTimeout(handleNavigation, 0) // Delay to ensure URL is updated
-    }
-    
-    window.history.replaceState = function(...args) {
-      originalReplaceState.apply(window.history, args)
-      setTimeout(handleNavigation, 0) // Delay to ensure URL is updated
-    }
-    
-    // Monitor for DOM changes that might indicate page change in SPAs
-    let lastTitle = document.title
-    const titleObserver = new MutationObserver(() => {
-      if (document.title !== lastTitle) {
-        lastTitle = document.title
-        console.log('📄 Page title changed, checking for navigation...')
-        handleNavigation()
-      }
-    })
-    
-    // Start observing title changes
-    titleObserver.observe(document.querySelector('title') || document.head, {
-      subtree: true,
-      characterData: true,
-      childList: true
-    })
-    
-    // Cleanup function
-    return () => {
-      window.removeEventListener('popstate', handleNavigation)
-      window.removeEventListener('hashchange', handleNavigation)
-      window.history.pushState = originalPushState
-      window.history.replaceState = originalReplaceState
-      titleObserver.disconnect()
-      
-      if (navigationDebounceTimer) {
-        clearTimeout(navigationDebounceTimer)
-      }
-    }
-  }, [finalConfig.enableWebsiteContext, extractWebsiteContext, messages.length])
+  }, [finalConfig.apiEndpoint, finalConfig.serviceKey, finalConfig.enableWebsiteContext, theme, finalConfig.position, finalConfig.maxMessages])
 
   // Add debug helper to global window object for developers
   useEffect(() => {
     if (typeof window !== 'undefined' && import.meta.env.NODE_ENV === 'development') {
       (window as any).showWidgetAnalytics = showAnalyticsStatus
-      console.log('🔧 [DEBUG] Use window.showWidgetAnalytics() to check analytics status')
+      // console.log('🔧 [DEBUG] Use window.showWidgetAnalytics() to check analytics status')
     }
   }, [])
+
+  // Reset clearInput flag after a brief delay to ensure it's processed
+  useEffect(() => {
+    if (shouldClearInput) {
+      const timer = setTimeout(() => {
+        setShouldClearInput(false)
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [shouldClearInput])
 
   // State change handler
   const handleStateChange = useCallback((newState: WidgetState) => {
@@ -365,23 +276,23 @@ export function AIWidget({
     setError(errorMessage)
     handleStateChange('error')
     onError?.(errorMessage)
-    console.error('AI Widget Error:', errorMessage)
+    // console.error('AI Widget Error:', errorMessage)
   }, [handleStateChange, onError, state, messages.length, theme])
 
   // API call using secure backend with website context
   const callAPI = async (question: string): Promise<string> => {
-    console.log('🔍 API call attempted', { 
-      hasClient: !!apiClientRef.current,
-      question: question.substring(0, 50) + '...',
-      hasWebsiteContext: !!websiteContext,
-      endpoint: finalConfig.apiEndpoint
-    })
+    // console.log('🔍 API call attempted', { 
+    //   hasClient: !!apiClientRef.current,
+    //   question: question.substring(0, 50) + '...',
+    //   hasWebsiteContext: !!websiteContext,
+    //   endpoint: finalConfig.apiEndpoint
+    // })
     
     if (!apiClientRef.current) {
-      console.error('❌ API client not initialized', {
-        hasEndpoint: !!finalConfig.apiEndpoint,
-        endpoint: finalConfig.apiEndpoint
-      })
+      // console.error('❌ API client not initialized', {
+      //   hasEndpoint: !!finalConfig.apiEndpoint,
+      //   endpoint: finalConfig.apiEndpoint
+      // })
       throw new Error('API client not initialized. Please check your backend endpoint configuration.')
     }
 
@@ -424,7 +335,7 @@ export function AIWidget({
         return data.data.answer
       }
     } catch (error) {
-      console.error('Backend API Error:', error)
+      // console.error('Backend API Error:', error)
       throw error
     }
   }
@@ -435,6 +346,7 @@ export function AIWidget({
 
     setIsLoading(true)
     setError(null)
+    setShouldClearInput(false) // Reset clear flag
     handleStateChange('loading')
 
     // Track message sent event
@@ -484,6 +396,9 @@ export function AIWidget({
 
       // Show chat viewport
       handleStateChange('chat-visible')
+      
+      // Clear input after successful submission
+      setShouldClearInput(true)
 
       // Notify parent
       onMessageSent?.(newMessage)
@@ -500,6 +415,8 @@ export function AIWidget({
         endpoint: finalConfig.apiEndpoint,
       })
       
+      // On error, keep the widget in expanded state so user can retry
+      handleStateChange('expanded')
       handleError(`Failed to get response: ${errorMessage}`)
     } finally {
       setIsLoading(false)
@@ -531,22 +448,51 @@ export function AIWidget({
     handleStateChange('collapsed')
   }, [handleStateChange, messages, theme, state])
 
-  // Position classes with keyboard awareness
-  const getPositionClasses = () => {
-    // For mobile, don't add transform classes here - handle in getBottomStyle
+  // Position styles with consistent transform-based positioning
+  const getPositionStyles = () => {
+    // For mobile, handle in getBottomStyle
     if (isMobile) {
-      return ''
+      return {}
     }
     
-    const baseClasses = {
-      'bottom-left': 'tw-left-6',
-      'bottom-right': 'tw-right-6', 
-      'bottom-center': 'tw-left-1/2 tw-transform -tw-translate-x-1/2'
+    // Always use left: 50% as base, adjust with transform
+    const baseStyle = {
+      left: '50%',
+      transition: 'transform 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94)'
     }
     
-    const horizontalClass = baseClasses[(finalConfig?.position as keyof typeof baseClasses) || 'bottom-center'] || baseClasses['bottom-center']
+    // When widget is expanded, center it
+    if (isWidgetExpanded) {
+      return {
+        ...baseStyle,
+        transform: 'translateX(-50%)'
+      }
+    }
     
-    return horizontalClass
+    // When collapsed, position based on configuration
+    const position = finalConfig?.position || 'bottom-center'
+    
+    switch (position) {
+      case 'bottom-left':
+        // Move to left: from center (-50%) to left edge with margin
+        return {
+          ...baseStyle,
+          transform: 'translateX(calc(-50vw + 84px))' // Half viewport - half widget - margin
+        }
+      case 'bottom-right':
+        // Move to right: from center (-50%) to right edge with margin
+        return {
+          ...baseStyle,
+          transform: 'translateX(calc(50vw - 84px))' // Half viewport - half widget - margin
+        }
+      case 'bottom-center':
+      default:
+        // Stay centered
+        return {
+          ...baseStyle,
+          transform: 'translateX(-50%)'
+        }
+    }
   }
 
   // Get keyboard-aware positioning
@@ -604,51 +550,52 @@ export function AIWidget({
     if (widgetRef.current) {
       const rect = widgetRef.current.getBoundingClientRect();
       const computed = window.getComputedStyle(widgetRef.current);
-      console.log('🔍 AIWidget Dimensions:', {
-        state,
-        isWidgetExpanded,
-        boundingRect: { width: rect.width, height: rect.height, top: rect.top, left: rect.left },
-        computedStyles: {
-          width: computed.width,
-          height: computed.height,
-          minWidth: computed.minWidth,
-          minHeight: computed.minHeight,
-          display: computed.display,
-          position: computed.position,
-          visibility: computed.visibility,
-          opacity: computed.opacity
-        },
-        inlineStyles: widgetRef.current.style.cssText,
-        className: widgetRef.current.className
-      });
+      // console.log('🔍 AIWidget Dimensions:', {
+      //   state,
+      //   isWidgetExpanded,
+      //   boundingRect: { width: rect.width, height: rect.height, top: rect.top, left: rect.left },
+      //   computedStyles: {
+      //     width: computed.width,
+      //     height: computed.height,
+      //     minWidth: computed.minWidth,
+      //     minHeight: computed.minHeight,
+      //     display: computed.display,
+      //     position: computed.position,
+      //     visibility: computed.visibility,
+      //     opacity: computed.opacity
+      //   },
+      //   inlineStyles: widgetRef.current.style.cssText,
+      //   className: widgetRef.current.className
+      // });
       
       // Log all children dimensions
       Array.from(widgetRef.current.children).forEach((child, index) => {
         const childRect = child.getBoundingClientRect();
         const childComputed = window.getComputedStyle(child);
-        console.log(`🔍 AIWidget Child ${index}:`, {
-          tagName: child.tagName,
-          className: child.className,
-          boundingRect: { width: childRect.width, height: childRect.height },
-          computedStyles: {
-            width: childComputed.width,
-            height: childComputed.height,
-            display: childComputed.display
-          }
-        });
+        // console.log(`🔍 AIWidget Child ${index}:`, {
+        //   tagName: child.tagName,
+        //   className: child.className,
+        //   boundingRect: { width: childRect.width, height: childRect.height },
+        //   computedStyles: {
+        //     width: childComputed.width,
+        //     height: childComputed.height,
+        //     display: childComputed.display
+        //   }
+        // });
       });
     }
   }, [state, isWidgetExpanded])
   
-  console.log('AIWidget state:', { state, isWidgetExpanded })
+  // console.log('AIWidget state:', { state, isWidgetExpanded })
 
   return (
     <>
       <div 
         ref={widgetRef}
-        className={`tw-fixed ${getPositionClasses()} tw-z-50 tw-transition-all tw-duration-500 tw-ease-out`}
+        className="tw-fixed tw-z-50"
         style={{ 
           ...getBottomStyle(isMobile),
+          ...getPositionStyles(),
           // Fallback dimensions to ensure visibility
           minWidth: '120px',
           minHeight: '60px'
@@ -676,13 +623,14 @@ export function AIWidget({
             isHistoryModalOpen={isHistoryModalOpen}
             onCloseHistoryModal={handleCloseHistoryModal}
             onNavigateToMessage={handleNavigateToMessage}
+            borderGradient={finalConfig.borderGradient}
           />
         </div>
       )}
 
       {/* Morphing Widget - handles both button and search bar states, with container padding */}
       <div 
-        className={`tw-widget-bounce-in ${getContainerPadding()}`}
+        className={`tw-widget-bounce-in ${getContainerPadding(isWidgetExpanded)}`}
         style={{ 
           transform: 'translateZ(0)' // Force hardware acceleration
         }}
@@ -692,7 +640,7 @@ export function AIWidget({
           onExpand={handleExpand}
           onCollapse={handleCollapse}
           onSubmit={handleSubmit}
-          onThemeToggle={handleThemeToggle}
+          onThemeToggle={finalConfig.borderGradient?.backgroundColor ? undefined : handleThemeToggle}
           onOpenHistoryModal={handleOpenHistoryModal}
           placeholder={finalConfig.placeholder}
           isLoading={isLoading}
@@ -700,6 +648,9 @@ export function AIWidget({
           theme={theme}
           faviconUrl={faviconUrl}
           hasMessages={messages.length > 0}
+          clearInput={shouldClearInput}
+          borderColor={finalConfig.borderColor}
+          borderGradient={finalConfig.borderGradient}
         />
       </div>
 

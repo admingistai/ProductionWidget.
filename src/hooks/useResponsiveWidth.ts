@@ -66,13 +66,13 @@ export function useResponsiveWidth() {
    */
   const getWidgetWidth = () => {
     // Debug logging for Tailwind class investigation
-    console.log('getWidgetWidth:', { 
-      isMobile: breakpointInfo.isMobile, 
-      isTablet: breakpointInfo.isTablet, 
-      isDesktop: breakpointInfo.isDesktop,
-      width: breakpointInfo.width,
-      keyboardVisible: keyboardState.isVisible 
-    })
+    // console.log('getWidgetWidth:', { 
+    //   isMobile: breakpointInfo.isMobile, 
+    //   isTablet: breakpointInfo.isTablet, 
+    //   isDesktop: breakpointInfo.isDesktop,
+    //   width: breakpointInfo.width,
+    //   keyboardVisible: keyboardState.isVisible 
+    // })
     
     if (breakpointInfo.isMobile) {
       // On mobile with keyboard visible, use slightly smaller width for better fit
@@ -91,10 +91,10 @@ export function useResponsiveWidth() {
    * Get responsive width for collapsed button state
    */
   const getCollapsedWidth = () => {
-    console.log('getCollapsedWidth:', { 
-      isMobile: breakpointInfo.isMobile,
-      returning: breakpointInfo.isMobile ? 'tw-w-[100px]' : 'tw-w-[120px]'
-    })
+    // console.log('getCollapsedWidth:', { 
+    //   isMobile: breakpointInfo.isMobile,
+    //   returning: breakpointInfo.isMobile ? 'tw-w-[100px]' : 'tw-w-[120px]'
+    // })
     
     if (breakpointInfo.isMobile) {
       return 'tw-w-[100px]'
@@ -104,8 +104,15 @@ export function useResponsiveWidth() {
 
   /**
    * Get responsive padding for the widget container
+   * @param isExpanded - Whether the widget is currently expanded
    */
-  const getContainerPadding = () => {
+  const getContainerPadding = (isExpanded: boolean = false) => {
+    // When expanded, don't add padding to avoid shifting the centered widget
+    if (isExpanded) {
+      return ''
+    }
+    
+    // Only add padding when collapsed
     if (breakpointInfo.isMobile) {
       return 'tw-px-4'
     }

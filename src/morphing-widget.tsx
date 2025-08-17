@@ -4,8 +4,9 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Input } from './ui/input'
 import { Loader2, Sun, Moon } from 'lucide-react'
 import { Image } from "./ui/image"
-import { STARS_SVG_DARK_DATA_URL, STARS_SVG_LIGHT_DATA_URL, STARS_SVG_GRADIENT_DATA_URL, DEFAULT_FAVICON_DATA_URL } from './ui/svg-icons'
+import { STARS_SVG_DARK_DATA_URL, STARS_SVG_LIGHT_DATA_URL, STARS_SVG_GRADIENT_DATA_URL, DEFAULT_FAVICON_DATA_URL, generateStarMaskStyles } from './ui/svg-icons'
 import { useResponsiveWidth } from './hooks/useResponsiveWidth'
+import type { BorderGradient } from './types/widget'
 
 interface MorphingWidgetProps {
   isExpanded: boolean
@@ -21,6 +22,9 @@ interface MorphingWidgetProps {
   theme?: 'light' | 'dark'
   faviconUrl?: string
   hasMessages?: boolean
+  clearInput?: boolean  // New prop to trigger input clearing from parent
+  borderColor?: string  // Custom border color (hex format) - legacy support
+  borderGradient?: BorderGradient  // Gradient border configuration
 }
 
 export function MorphingWidget({
@@ -30,13 +34,16 @@ export function MorphingWidget({
   onSubmit,
   onThemeToggle,
   onOpenHistoryModal,
-  placeholder = "Ask anything..",
+  placeholder = "Ask anything...",
   isLoading = false,
   disabled = false,
   className = "",
   theme = 'dark',
   faviconUrl,
-  hasMessages = false
+  hasMessages = false,
+  clearInput = false,
+  borderColor,
+  borderGradient
 }: MorphingWidgetProps) {
   const [input, setInput] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -48,42 +55,42 @@ export function MorphingWidget({
     if (widgetElementRef.current) {
       const rect = widgetElementRef.current.getBoundingClientRect();
       const computed = window.getComputedStyle(widgetElementRef.current);
-      console.log('🔍 MorphingWidget Dimensions:', {
-        isExpanded,
-        theme,
-        boundingRect: { width: rect.width, height: rect.height },
-        computedStyles: {
-          width: computed.width,
-          height: computed.height,
-          minWidth: computed.minWidth,
-          minHeight: computed.minHeight,
-          display: computed.display,
-          overflow: computed.overflow
-        },
-        inlineStyles: widgetElementRef.current.style.cssText,
-        className: widgetElementRef.current.className,
-        responsiveClasses: {
-          widgetWidth: getWidgetWidth(),
-          collapsedWidth: getCollapsedWidth()
-        },
-        breakpointInfo: { 
-          isMobile: breakpointInfo.isMobile, 
-          isTablet: breakpointInfo.isTablet, 
-          isDesktop: breakpointInfo.isDesktop,
-          windowWidth: breakpointInfo.width
-        }
-      });
+      // console.log('🔍 MorphingWidget Dimensions:', {
+      //   isExpanded,
+      //   theme,
+      //   boundingRect: { width: rect.width, height: rect.height },
+      //   computedStyles: {
+      //     width: computed.width,
+      //     height: computed.height,
+      //     minWidth: computed.minWidth,
+      //     minHeight: computed.minHeight,
+      //     display: computed.display,
+      //     overflow: computed.overflow
+      //   },
+      //   inlineStyles: widgetElementRef.current.style.cssText,
+      //   className: widgetElementRef.current.className,
+      //   responsiveClasses: {
+      //     widgetWidth: getWidgetWidth(),
+      //     collapsedWidth: getCollapsedWidth()
+      //   },
+      //   breakpointInfo: { 
+      //     isMobile: breakpointInfo.isMobile, 
+      //     isTablet: breakpointInfo.isTablet, 
+      //     isDesktop: breakpointInfo.isDesktop,
+      //     windowWidth: breakpointInfo.width
+      //   }
+      // });
     }
   }, [isExpanded, theme, getWidgetWidth, getCollapsedWidth, breakpointInfo.isMobile, breakpointInfo.isTablet, breakpointInfo.isDesktop])
   
-  console.log('MorphingWidget rendered:', { 
-    isExpanded, 
-    theme, 
-    className,
-    widgetWidth: getWidgetWidth(),
-    collapsedWidth: getCollapsedWidth(),
-    breakpointInfo: { isMobile: breakpointInfo.isMobile, isTablet: breakpointInfo.isTablet, isDesktop: breakpointInfo.isDesktop }
-  })
+  // console.log('MorphingWidget rendered:', { 
+  //   isExpanded, 
+  //   theme, 
+  //   className,
+  //   widgetWidth: getWidgetWidth(),
+  //   collapsedWidth: getCollapsedWidth(),
+  //   breakpointInfo: { isMobile: breakpointInfo.isMobile, isTablet: breakpointInfo.isTablet, isDesktop: breakpointInfo.isDesktop }
+  // })
 
   // Focus input when expanded
   useEffect(() => {
@@ -95,12 +102,20 @@ export function MorphingWidget({
     }
   }, [isExpanded])
 
+  // Clear input when parent requests it
+  useEffect(() => {
+    if (clearInput) {
+      setInput('')
+    }
+  }, [clearInput])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const trimmedInput = input.trim()
     if (trimmedInput && !isLoading && !disabled) {
       onSubmit(trimmedInput)
-      setInput('')
+      // Don't clear input immediately - let the parent handle this after successful submission
+      // This prevents the "disappearing" effect where users see empty input before response
     }
   }
 
@@ -119,11 +134,53 @@ export function MorphingWidget({
     }
   }
 
-  // Theme-aware styling
+  // Advanced border styling with CSS masking support
+  const getBorderStyle = () => {
+    // Priority: gradient > solid color > default
+    if (borderGradient) {
+      const direction = borderGradient.direction || 'to bottom right';
+      // More robust browser support detection
+      const hasMaskingSupport = typeof CSS !== 'undefined' && 
+        (CSS.supports?.('mask-composite', 'exclude') || 
+         CSS.supports?.('-webkit-mask-composite', 'xor'));
+      
+      return {
+        type: 'gradient' as const,
+        background: `linear-gradient(${direction}, ${borderGradient.from} 0%, ${borderGradient.to} 100%)`,
+        hasMaskingSupport: hasMaskingSupport
+      };
+    }
+    
+    if (borderColor) {
+      return {
+        type: 'solid' as const,
+        color: borderColor,
+        hasMaskingSupport: false
+      };
+    }
+    
+    // Default behavior: light theme = original gradient, dark theme = white border
+    if (theme === 'light') {
+      return {
+        type: 'default-gradient' as const,
+        background: 'linear-gradient(to right, #FFAD00 11%, #ED6142 37%, #8F7CDB 64%, #3C3C8E 90%)',
+        hasMaskingSupport: false
+      };
+    } else {
+      return {
+        type: 'solid' as const,
+        color: '#ffffff',
+        hasMaskingSupport: false
+      };
+    }
+  };
+
+  const borderStyle = getBorderStyle();
+
   const themeClasses = {
     container: theme === 'light' 
       ? 'tw-bg-white tw-shadow-lg hover:tw-shadow-xl' 
-      : 'tw-bg-[#1d1d1d] tw-border-2 tw-border-white tw-shadow-lg hover:tw-shadow-xl',
+      : `tw-bg-[#1d1d1d] tw-shadow-lg hover:tw-shadow-xl`,
     text: theme === 'light'
       ? 'tw-text-gray-900 group-hover:tw-text-blue-600'
       : 'tw-text-white group-hover:tw-text-[#B8FFE3]',
@@ -161,15 +218,13 @@ export function MorphingWidget({
         // Collapsed Button State
         <div className="tw-flex tw-items-center tw-justify-center tw-h-full group tw-gap-2">
           {/* Stars Icon - positioned just to the left of text */}
-          <div className="tw-w-5 tw-h-5 tw-max-w-[20px] tw-max-h-[20px] tw-flex-shrink-0 tw-transform-gpu group-hover:tw-scale-110 group-hover:tw-rotate-12" style={{ transition: 'transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
-            <Image
-              src={STARS_SVG_GRADIENT_DATA_URL}
-              alt="AI Assistant"
-              width={20}
-              height={20}
-              className="tw-w-full tw-h-full"
-            />
-          </div>
+          <div 
+            className="tw-w-5 tw-h-5 tw-max-w-[20px] tw-max-h-[20px] tw-flex-shrink-0 tw-transform-gpu group-hover:tw-scale-110 group-hover:tw-rotate-12" 
+            style={{
+              ...generateStarMaskStyles(borderGradient?.starGradient, borderGradient?.starColor),
+              transition: 'transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+            }}
+          />
 
           {/* Button Text */}
           <span className={`${themeClasses.text} tw-font-medium tw-text-[14px] tw-transition-colors tw-duration-200 tw-whitespace-nowrap`}>
@@ -218,18 +273,11 @@ export function MorphingWidget({
               ${isExpanded ? 'tw-scale-100 tw-rotate-0' : 'tw-scale-110 tw-rotate-12'}
             `}
             style={{
+              ...generateStarMaskStyles(borderGradient?.starGradient, borderGradient?.starColor),
               transition: 'transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)',
               willChange: 'transform',
             }}
-          >
-            <Image
-              src={STARS_SVG_GRADIENT_DATA_URL}
-              alt="AI Assistant"
-              width={20}
-              height={20}
-              className="tw-w-full tw-h-full"
-            />
-          </div>
+          />
 
           {/* Input Field */}
           <Input
@@ -375,77 +423,149 @@ export function MorphingWidget({
     </>
   )
   
-  // Gradient border wrapper for light mode
-  if (theme === 'light') {
-    return (
-      <div
-        className={`tw-relative tw-p-[2px] tw-rounded-full ${isExpanded ? `${getWidgetWidth()} tw-h-[60px]` : `${getCollapsedWidth()} tw-h-[60px]`}`}
-        style={{
-          background: 'linear-gradient(to right, #608097, #CA061A)',
-          transition: isExpanded 
-            ? 'width 350ms cubic-bezier(0.34, 1.56, 0.64, 1)'
-            : 'width 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-          // Fallback dimensions to ensure visibility
-          minWidth: isExpanded ? '300px' : '120px',
-          height: '60px'
-        }}
-      >
+  // Modern CSS masking approach for all border types
+  const renderBorderWithMasking = () => {
+    const shouldUseMasking = borderStyle.type === 'gradient' && borderStyle.hasMaskingSupport;
+    const borderWidth = '4px';
+    
+    if (borderStyle.type === 'gradient') {
+      // Reliable Padding Wrapper approach for gradient borders
+      const borderRadius = '9999px'; // Full rounded pill shape
+      const borderWidth = borderGradient?.width || '4px';
+      
+      // Debug logging
+      // console.log('🎨 Gradient Border Implementation:', {
+      //   gradientBackground: borderStyle.background,
+      //   borderRadius,
+      //   borderWidth,
+      //   theme,
+      //   isExpanded
+      // });
+      
+      return (
         <div
-          className={`
-            tw-relative tw-overflow-hidden
-            ${themeClasses.container}
-            ${performanceClasses}
-            tw-cursor-pointer
-            tw-rounded-full
-            tw-w-full tw-h-full
-            
-            ${isExpanded 
-              ? 'tw-px-2' 
-              : `tw-px-6 hover:tw-scale-[1.02] ${themeClasses.hoverShadow}`
-            }
-            ${className}
-          `}
+          className={`tw-relative ${isExpanded ? `${getWidgetWidth()} tw-h-[60px]` : `${getCollapsedWidth()} tw-h-[60px]`}`}
           style={{
-            transition: 'transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-            transformOrigin: 'center',
-            contain: 'layout style paint',
+            // Outer container: Gradient background + border radius + padding for "border"
+            background: borderStyle.background,
+            borderRadius: borderRadius,
+            padding: borderWidth,
+            transition: isExpanded 
+              ? 'width 350ms cubic-bezier(0.34, 1.56, 0.64, 1)'
+              : 'width 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            minWidth: isExpanded ? '300px' : '120px',
+            height: '60px',
+            // Ensure proper centering when expanded
+            margin: isExpanded ? '0 auto' : '0',
+            // Ensure expansion happens from center
+            transformOrigin: 'center center'
           }}
-          onClick={!isExpanded ? handleClick : undefined}
         >
-          {renderContent()}
+          <div
+            className={`
+              tw-relative tw-overflow-hidden tw-w-full tw-h-full
+              ${performanceClasses} tw-cursor-pointer
+              ${isExpanded 
+                ? 'tw-px-2' 
+                : `tw-px-6 hover:tw-scale-[1.02] ${themeClasses.hoverShadow}`
+              }
+              ${className}
+            `}
+            style={{
+              // Inner container: Dynamic or default background + matching border radius
+              background: borderGradient?.backgroundColor || (theme === 'light' ? '#ffffff' : '#1d1d1d'),
+              borderRadius: borderRadius,
+              backdropFilter: 'blur(2px)', // Maintain blur effect for modern browsers
+              boxShadow: theme === 'light' 
+                ? '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                : '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2)',
+              transition: 'transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              transformOrigin: 'center',
+              contain: 'layout style paint',
+            }}
+            onClick={!isExpanded ? handleClick : undefined}
+          >
+            {renderContent()}
+          </div>
         </div>
-      </div>
-    )
-  }
+      );
+    } else {
+      // Fallback for solid colors and legacy gradients
+      if (borderStyle.type === 'default-gradient') {
+        // Light theme original gradient wrapper
+        return (
+          <div
+            className={`tw-relative tw-p-[4px] tw-rounded-full ${isExpanded ? `${getWidgetWidth()} tw-h-[60px]` : `${getCollapsedWidth()} tw-h-[60px]`}`}
+            style={{
+              background: borderStyle.background,
+              transition: isExpanded 
+                ? 'width 350ms cubic-bezier(0.34, 1.56, 0.64, 1)'
+                : 'width 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              minWidth: isExpanded ? '300px' : '120px',
+              height: '60px',
+              // Ensure proper centering when expanded
+              margin: isExpanded ? '0 auto' : '0',
+              // Ensure expansion happens from center
+              transformOrigin: 'center center'
+            }}
+          >
+            <div
+              className={`
+                tw-relative tw-overflow-hidden tw-rounded-full tw-w-full tw-h-full
+                ${themeClasses.container} ${performanceClasses} tw-cursor-pointer
+                ${isExpanded 
+                  ? 'tw-px-2' 
+                  : `tw-px-6 hover:tw-scale-[1.02] ${themeClasses.hoverShadow}`
+                }
+                ${className}
+              `}
+              style={{
+                // Override background if custom backgroundColor is provided
+                ...(borderGradient?.backgroundColor && { backgroundColor: borderGradient.backgroundColor }),
+                transition: 'transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                transformOrigin: 'center',
+                contain: 'layout style paint',
+              }}
+              onClick={!isExpanded ? handleClick : undefined}
+            >
+              {renderContent()}
+            </div>
+          </div>
+        );
+      } else {
+        // Solid border approach
+        return (
+          <div
+            className={`
+              tw-relative tw-overflow-hidden tw-rounded-full
+              ${themeClasses.container} ${performanceClasses} tw-cursor-pointer
+              tw-border-4
+              ${isExpanded 
+                ? `${getWidgetWidth()} tw-h-14 tw-px-2` 
+                : `${getCollapsedWidth()} tw-h-14 tw-px-6 hover:tw-scale-[1.02] ${themeClasses.hoverShadow}`
+              }
+              ${className}
+            `}
+            style={{
+              borderColor: borderStyle.color,
+              // Override background if custom backgroundColor is provided
+              ...(borderGradient?.backgroundColor && { backgroundColor: borderGradient.backgroundColor }),
+              transition: isExpanded 
+                ? 'width 350ms cubic-bezier(0.34, 1.56, 0.64, 1), transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1)'
+                : 'width 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              transformOrigin: 'center',
+              contain: 'layout style paint',
+              minWidth: isExpanded ? '300px' : '120px',
+              height: '56px'
+            }}
+            onClick={!isExpanded ? handleClick : undefined}
+          >
+            {renderContent()}
+          </div>
+        );
+      }
+    }
+  };
 
-  // Dark mode with white border
-  return (
-    <div
-      className={`
-        tw-relative tw-overflow-hidden
-        ${themeClasses.container}
-        ${performanceClasses}
-        tw-cursor-pointer
-        
-        ${isExpanded 
-          ? `${getWidgetWidth()} tw-h-14 tw-rounded-full tw-px-2` 
-          : `${getCollapsedWidth()} tw-h-14 tw-rounded-full tw-px-6 hover:tw-scale-[1.02] ${themeClasses.hoverShadow}`
-        }
-        ${className}
-      `}
-      style={{
-        transition: isExpanded 
-          ? 'width 350ms cubic-bezier(0.34, 1.56, 0.64, 1), transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1)'
-          : 'width 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-        transformOrigin: 'center',
-        contain: 'layout style paint',
-        // Fallback dimensions to ensure visibility
-        minWidth: isExpanded ? '300px' : '120px',
-        height: '56px'
-      }}
-      onClick={!isExpanded ? handleClick : undefined}
-    >
-      {renderContent()}
-    </div>
-  )
+  return renderBorderWithMasking();
 }

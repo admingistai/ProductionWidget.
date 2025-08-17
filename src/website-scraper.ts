@@ -201,27 +201,187 @@ export class WebsiteScraper {
   }
 
   /**
-   * Extract business name from headings and title
+   * Extract business name from various sources with smart prioritization
    */
   private static extractBusinessName(): string {
-    // Try h1 first
-    const h1 = document.querySelector('h1')
-    if (h1 && h1.textContent && h1.textContent.length < 100) {
-      return h1.textContent.trim()
+    // Priority 1: JSON-LD Structured Data (most reliable)
+    const jsonLdName = this.extractFromJsonLd()
+    if (jsonLdName) {
+      // console.log('🎯 Company name from JSON-LD:', jsonLdName)
+      return jsonLdName
     }
 
-    // Try title tag (remove common suffixes)
+    // Priority 2: Meta Tags (Open Graph, Twitter, etc.)
+    const metaName = this.extractFromMetaTags()
+    if (metaName) {
+      // console.log('🎯 Company name from meta tags:', metaName)
+      return metaName
+    }
+
+    // Priority 3: Logo Alt Text
+    const logoName = this.extractFromLogoAlt()
+    if (logoName) {
+      // console.log('🎯 Company name from logo:', logoName)
+      return logoName
+    }
+
+    // Priority 4: H1 (less reliable, often page-specific)
+    const h1 = document.querySelector('h1')
+    if (h1 && h1.textContent && h1.textContent.length < 100) {
+      const h1Text = h1.textContent.trim()
+      // Skip if it looks like a page title
+      if (!this.looksLikePageTitle(h1Text)) {
+        // console.log('🎯 Company name from H1:', h1Text)
+        return h1Text
+      }
+    }
+
+    // Priority 5: Title tag (least reliable)
     const title = document.title
     const cleanedTitle = title
-      .replace(/\s*[-|]\s*(Home|Welcome|About).*$/i, '')
+      .replace(/\s*[-|]\s*(Home|Welcome|About|Contact|Services|Products|Blog).*$/i, '')
       .replace(/\s*[-|]\s*$/, '')
       .trim()
     
-    if (cleanedTitle && cleanedTitle.length < 50) {
+    if (cleanedTitle && cleanedTitle.length < 50 && !this.looksLikePageTitle(cleanedTitle)) {
+      // console.log('🎯 Company name from title:', cleanedTitle)
       return cleanedTitle
     }
 
+    // console.log('⚠️ No company name found, using fallback')
     return ''
+  }
+
+  /**
+   * Extract company name from JSON-LD structured data
+   */
+  private static extractFromJsonLd(): string {
+    try {
+      const scripts = document.querySelectorAll('script[type="application/ld+json"]')
+      
+      for (const script of scripts) {
+        try {
+          const data = JSON.parse(script.textContent || '{}')
+          
+          // Handle single object or array of objects
+          const objects = Array.isArray(data) ? data : [data]
+          
+          for (const obj of objects) {
+            // Check for Organization or LocalBusiness types
+            if (obj['@type'] && typeof obj['@type'] === 'string') {
+              const type = obj['@type'].toLowerCase()
+              if (type.includes('organization') || type.includes('business') || type.includes('company')) {
+                if (obj.name && typeof obj.name === 'string') {
+                  return obj.name.trim()
+                }
+              }
+            }
+            
+            // Check for WebSite type which often has publisher info
+            if (obj['@type'] === 'WebSite' && obj.publisher?.name) {
+              return obj.publisher.name.trim()
+            }
+          }
+        } catch (e) {
+          // Invalid JSON in this script tag, continue to next
+          // console.warn('Invalid JSON-LD:', e)
+        }
+      }
+    } catch (e) {
+      // console.warn('Error extracting from JSON-LD:', e)
+    }
+    
+    return ''
+  }
+
+  /**
+   * Extract company name from meta tags
+   */
+  private static extractFromMetaTags(): string {
+    // Open Graph site name (most common and reliable)
+    const ogSiteName = document.querySelector('meta[property="og:site_name"]')?.getAttribute('content')
+    if (ogSiteName && ogSiteName.trim()) {
+      return ogSiteName.trim()
+    }
+
+    // Twitter site name
+    const twitterSite = document.querySelector('meta[name="twitter:site"]')?.getAttribute('content')
+    if (twitterSite && twitterSite.trim()) {
+      // Remove @ symbol if present
+      return twitterSite.trim().replace(/^@/, '')
+    }
+
+    // Application name
+    const appName = document.querySelector('meta[name="application-name"]')?.getAttribute('content')
+    if (appName && appName.trim()) {
+      return appName.trim()
+    }
+
+    // Author (sometimes contains company name)
+    const author = document.querySelector('meta[name="author"]')?.getAttribute('content')
+    if (author && author.trim() && !author.includes('@') && author.length < 50) {
+      return author.trim()
+    }
+
+    return ''
+  }
+
+  /**
+   * Extract company name from logo alt text
+   */
+  private static extractFromLogoAlt(): string {
+    const logoSelectors = [
+      'img[alt*="logo" i]',
+      '.logo img',
+      '#logo img',
+      'header img[alt]',
+      '[class*="brand"] img',
+      '[class*="logo"] img',
+      '[id*="logo"] img',
+      'a[href="/"] img[alt]'
+    ]
+
+    for (const selector of logoSelectors) {
+      const logo = document.querySelector(selector) as HTMLImageElement
+      if (logo?.alt) {
+        const altText = logo.alt.trim()
+        // Clean up common patterns
+        const cleaned = altText
+          .replace(/logo/gi, '')
+          .replace(/icon/gi, '')
+          .replace(/^\W+|\W+$/g, '') // Remove leading/trailing non-word chars
+          .trim()
+        
+        if (cleaned && cleaned.length > 2 && cleaned.length < 50) {
+          return cleaned
+        }
+      }
+    }
+
+    return ''
+  }
+
+  /**
+   * Check if text looks like a page-specific title rather than company name
+   */
+  private static looksLikePageTitle(text: string): boolean {
+    const pageTitlePatterns = [
+      /^welcome to/i,
+      /^about us/i,
+      /^contact us/i,
+      /^our services/i,
+      /^our products/i,
+      /^home$/i,
+      /^blog$/i,
+      /^news$/i,
+      /^portfolio$/i,
+      /^testimonials/i,
+      /^frequently asked/i,
+      /^privacy policy/i,
+      /^terms/i
+    ]
+
+    return pageTitlePatterns.some(pattern => pattern.test(text))
   }
 
   /**

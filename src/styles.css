@@ -1,15 +1,126 @@
 @import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;700&display=swap');
 
-@tailwind base;
+/* IMPORTANT: Do NOT include @tailwind base - it pollutes global CSS! */
+/* Only include components and utilities which are properly scoped */
 @tailwind components;
 @tailwind utilities;
 
-/* Reset pointer-events for widget content */
+/* ============================================
+   SCOPED CSS RESET - Only affects widget elements
+   ============================================ */
+
+/* Root widget container - establish new stacking context */
+#gist-widget-root {
+  /* Establish a new CSS containment context */
+  all: initial;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  
+  /* Box model */
+  box-sizing: border-box;
+  position: fixed;
+  z-index: 2147483647;
+  
+  /* Typography defaults for widget */
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  line-height: 1.5;
+  font-size: 16px;
+  color: #1f2937;
+  font-weight: 400;
+  
+  /* Isolation and containment */
+  isolation: isolate;
+  contain: layout style;
+  
+  /* Text rendering */
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  
+  /* Prevent inheritance from host page */
+  text-transform: none;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-indent: 0;
+  text-shadow: none;
+  text-align: left;
+  direction: ltr;
+}
+
+/* Reset all elements ONLY within the widget */
+#gist-widget-root *,
+#gist-widget-root *::before,
+#gist-widget-root *::after {
+  /* Use border-box for everything in widget */
+  box-sizing: border-box;
+  
+  /* Reset margins and paddings */
+  margin: 0;
+  padding: 0;
+  
+  /* Reset borders */
+  border: 0 solid #e5e7eb;
+  
+  /* Ensure proper inheritance */
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  color: inherit;
+  
+  /* Reset other properties that might be inherited */
+  text-decoration: none;
+  vertical-align: baseline;
+  background: transparent;
+}
+
+/* Reset form elements ONLY within widget */
+#gist-widget-root button,
+#gist-widget-root input,
+#gist-widget-root optgroup,
+#gist-widget-root select,
+#gist-widget-root textarea {
+  font-family: inherit;
+  font-size: 100%;
+  font-weight: inherit;
+  line-height: inherit;
+  color: inherit;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+/* Button resets ONLY within widget */
+#gist-widget-root button {
+  cursor: pointer;
+  background-color: transparent;
+  background-image: none;
+  text-transform: none;
+  -webkit-appearance: button;
+}
+
+/* Input resets ONLY within widget */
+#gist-widget-root input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Prevent focus outline inheritance */
+#gist-widget-root *:focus {
+  outline: none;
+}
+
+/* Reset pointer events for widget content */
 #gist-widget-root > * {
   pointer-events: auto;
 }
 
-/* Custom scrollbar for chat */
+/* Custom scrollbar for chat - scoped to widget */
 #gist-widget-root .gist-chat-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
@@ -26,32 +137,6 @@
 #gist-widget-root .gist-chat-scroll::-webkit-scrollbar-thumb {
   background-color: rgba(156, 163, 175, 0.5);
   border-radius: 3px;
-}
-
-/* Prevent widget styles from affecting host page */
-#gist-widget-root {
-  /* Reset specific properties instead of using all: initial */
-  box-sizing: border-box;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segeo UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  line-height: 1.5;
-  font-size: 16px;
-  color: inherit;
-  isolation: isolate;
-  
-  /* Enhanced iOS optimizations for keyboard interaction */
-  -webkit-text-size-adjust: 100%;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  /* Improved performance */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  /* Removed contain property that might cause visibility issues */
-}
-
-#gist-widget-root *,
-#gist-widget-root *::before,
-#gist-widget-root *::after {
-  box-sizing: border-box;
 }
 
 /* Widget animations */

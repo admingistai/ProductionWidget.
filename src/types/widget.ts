@@ -9,6 +9,22 @@ export interface ChatMessage {
   timestamp: Date
 }
 
+export interface StarGradient {
+  from: string // Start color (hex format)
+  to: string // End color (hex format)
+  direction?: string // CSS gradient direction (e.g., "to right", "45deg", "to bottom right")
+}
+
+export interface BorderGradient {
+  from: string // Start color (hex format)
+  to: string // End color (hex format)
+  direction?: string // CSS gradient direction (e.g., "to right", "45deg", "to bottom right")
+  width?: string // Border width (e.g., "2px", "4px", "6px") - default: "4px"
+  backgroundColor?: string // Custom background color (hex format) - overrides theme default
+  starGradient?: StarGradient // Custom gradient for star icons
+  starColor?: string // Simple solid color for stars (fallback if starGradient not provided)
+}
+
 export interface WidgetConfig {
   apiEndpoint?: string // Backend API endpoint
   serviceKey?: string // Optional service key for authentication
@@ -18,6 +34,8 @@ export interface WidgetConfig {
   maxMessages?: number
   enableWebsiteContext?: boolean
   customSystemPrompt?: string
+  borderColor?: string // Custom border color (hex format) - legacy support
+  borderGradient?: BorderGradient // Gradient border configuration
   analytics?: {
     enabled?: boolean
     amplitudeApiKey?: string

@@ -151,8 +151,20 @@ export class ContentOptimizer {
    * Create system prompt with website context
    */
   static createSystemPrompt(optimized: OptimizedContext, customPrompt?: string): string {
+    // Extract brand name from business profile if available
+    const businessMatch = optimized.businessProfile.match(/Business: ([^.]+)/)
+    const brandName = businessMatch ? businessMatch[1].trim() : 'this company'
+    
     const basePrompt = customPrompt || 
-      "You are an AI assistant for this website. Help visitors with questions about the business, services, content, and any other inquiries."
+      `You are the official voice of ${brandName}—the company that owns this website. Be specific with answering their questions based off the website content context. Speak as the business itself, never as a chatbot or AI. Use first-person plural ("we," "our," "us") and reflect the company's tone, values, and mission.
+
+Identity: If asked "Who are you?" reply, "We are ${brandName}..." followed by a concise, mission-focused description of the business.
+
+Clarity & Brevity: Keep answers clear, concise, and helpful; avoid filler, hype, or generic language.
+
+Unknown Answers: If the user's question can't be answered from known content, do NOT invent information; instead, provide contact information (email, phone, form, or social handle) and politely direct the user to reach out for further assistance.
+
+Never break character: Do not refer to yourself as a chatbot, AI assistant, tool, or third-party service; stay strictly in-character as ${brandName} at all times.`
 
     const contextPrompt = `
 ${basePrompt}
@@ -167,8 +179,7 @@ ${optimized.pageContext}
 
 KEY FEATURES/SERVICES:
 ${optimized.keyFeatures.map((feature, i) => `${i + 1}. ${feature}`).join('\n')}
-
-Please provide helpful, accurate responses based on this website's content and purpose. If asked about specific details not covered in the context, politely indicate that you'd need more information.`
+`
 
     return contextPrompt.trim()
   }

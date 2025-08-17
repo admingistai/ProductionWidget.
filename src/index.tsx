@@ -25,7 +25,7 @@ const DEFAULT_CONFIG: WidgetConfig = {
   serviceKey: import.meta.env.VITE_WIDGET_SERVICE_KEY || '',
   position: 'bottom-center',
   theme: 'light',
-  placeholder: 'Ask anything..',
+  placeholder: 'Ask anything...',
   maxMessages: 50,
   enableWebsiteContext: true,
   customSystemPrompt: 'You are a helpful AI assistant embedded in a website. Answer questions concisely and helpfully based on the website context when available.',
@@ -57,7 +57,7 @@ function createContainer(): HTMLDivElement {
 async function mountWidget(config: Partial<WidgetConfig> = {}) {
   // Prevent double mounting
   if (window.GistWidget?._mounted) {
-    console.warn('GistWidget already mounted');
+    // console.warn('GistWidget already mounted');
     return;
   }
 
@@ -65,11 +65,11 @@ async function mountWidget(config: Partial<WidgetConfig> = {}) {
   
   // Initialize analytics first
   if (finalConfig.analytics?.enabled) {
-    console.log('🚀 [WIDGET] Initializing analytics for website integration');
-    console.log('   ├─ Domain:', window.location.hostname);
-    console.log('   ├─ URL:', window.location.href);
-    console.log('   ├─ User Agent:', navigator.userAgent.substring(0, 80) + '...');
-    console.log('   └─ Timestamp:', new Date().toISOString());
+    // console.log('🚀 [WIDGET] Initializing analytics for website integration');
+    // console.log('   ├─ Domain:', window.location.hostname);
+    // console.log('   ├─ URL:', window.location.href);
+    // console.log('   ├─ User Agent:', navigator.userAgent.substring(0, 80) + '...');
+    // console.log('   └─ Timestamp:', new Date().toISOString());
     
     await analytics.init({
       apiKey: finalConfig.analytics.amplitudeApiKey,
@@ -78,7 +78,7 @@ async function mountWidget(config: Partial<WidgetConfig> = {}) {
     });
     
     // Track widget initialization on website - This is the key event!
-    console.log('🌟 [WIDGET] Tracking website integration event');
+    // console.log('🌟 [WIDGET] Tracking website integration event');
     analytics.track('Widget Initialized on Website', {
       url: window.location.href,
       domain: window.location.hostname,
@@ -90,17 +90,17 @@ async function mountWidget(config: Partial<WidgetConfig> = {}) {
       installation_timestamp: new Date().toISOString(),
     });
   } else {
-    console.log('⚠️ [WIDGET] Analytics disabled - website integration will not be tracked');
+    // console.log('⚠️ [WIDGET] Analytics disabled - website integration will not be tracked');
   }
   
   // Debug logging for API endpoint
-  console.log('🔧 Widget API Endpoint:', finalConfig.apiEndpoint);
-  console.log('🔑 Widget Service Key:', finalConfig.serviceKey ? 'Set' : 'Missing');
-  console.log('📊 Analytics:', finalConfig.analytics?.enabled ? 'Enabled' : 'Disabled');
-  console.log('🔍 Environment Variables Debug:');
-  console.log('  - VITE_WIDGET_API_ENDPOINT:', import.meta.env.VITE_WIDGET_API_ENDPOINT);
-  console.log('  - VITE_WIDGET_SERVICE_KEY:', import.meta.env.VITE_WIDGET_SERVICE_KEY ? 'Set' : 'Missing');
-  console.log('  - VITE_AMPLITUDE_API_KEY:', import.meta.env.VITE_AMPLITUDE_API_KEY ? 'Set' : 'Missing');
+  // console.log('🔧 Widget API Endpoint:', finalConfig.apiEndpoint);
+  // console.log('🔑 Widget Service Key:', finalConfig.serviceKey ? 'Set' : 'Missing');
+  // console.log('📊 Analytics:', finalConfig.analytics?.enabled ? 'Enabled' : 'Disabled');
+  // console.log('🔍 Environment Variables Debug:');
+  // console.log('  - VITE_WIDGET_API_ENDPOINT:', import.meta.env.VITE_WIDGET_API_ENDPOINT);
+  // console.log('  - VITE_WIDGET_SERVICE_KEY:', import.meta.env.VITE_WIDGET_SERVICE_KEY ? 'Set' : 'Missing');
+  // console.log('  - VITE_AMPLITUDE_API_KEY:', import.meta.env.VITE_AMPLITUDE_API_KEY ? 'Set' : 'Missing');
   
   // Create container if not exists
   if (!container) {
@@ -109,7 +109,7 @@ async function mountWidget(config: Partial<WidgetConfig> = {}) {
 
   // Create React root and render
   root = createRoot(container);
-  console.log('🎨 Rendering widget...');
+  // console.log('🎨 Rendering widget...');
   root.render(
     <React.StrictMode>
       <AIWidget config={finalConfig} />
@@ -117,7 +117,7 @@ async function mountWidget(config: Partial<WidgetConfig> = {}) {
   );
 
   window.GistWidget._mounted = true;
-  console.log('✅ Widget mounted successfully');
+  // console.log('✅ Widget mounted successfully');
 }
 
 function destroyWidget() {
@@ -143,16 +143,25 @@ window.GistWidget = {
 const script = document.currentScript as HTMLScriptElement;
 const autoInit = script?.getAttribute('data-autoinit') !== 'false';
 const configJson = script?.getAttribute('data-config');
+const borderColor = script?.getAttribute('data-widget-border-color');
 
 if (autoInit) {
   // Wait for DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       const config = configJson ? JSON.parse(configJson) : {};
+      // Add border color from attribute if provided
+      if (borderColor) {
+        config.borderColor = borderColor;
+      }
       mountWidget(config);
     });
   } else {
     const config = configJson ? JSON.parse(configJson) : {};
+    // Add border color from attribute if provided
+    if (borderColor) {
+      config.borderColor = borderColor;
+    }
     mountWidget(config);
   }
 }
